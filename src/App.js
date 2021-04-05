@@ -1,17 +1,52 @@
 import React from "react";
 import Canvas from "./Canvas";
+import Game from "./game/Game";
 
 function App() {
-  const draw = (ctx, frameCount) => {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.fillStyle = "#000000";
-    ctx.beginPath();
-    const radius = Math.max(Math.floor(20 * Math.sin(frameCount * 0.05) + 10), 0);
-    ctx.arc(50, 100, radius, 0, 2 * Math.PI);
-    ctx.fill();
+  const game = new Game({ width: window.innerWidth, height: window.innerHeight });
+
+  const keysHeld = {};
+  let lastKeyDown = null;
+
+  const onKeyDown = (event) => {
+    const key = event.key;
+    keysHeld[key] = true;
+
+    // Send the key event for the first time the key is pressed
+    if (key != lastKeyDown) {
+      game.onKeyDown(key);
+    }
+    lastKeyDown = key;
   };
 
-  return <Canvas draw={draw} />;
+  const onKeyUp = (event) => {
+    const key = event.key;
+    keysHeld[event.key] = false;
+
+    if (key == lastKeyDown) {
+      lastKeyDown = null; // Clear last key down
+    }
+  };
+
+  const updateScreenSize = (ctx) => {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    ctx.canvas.width = width;
+    ctx.canvas.height = height;
+    game.width = width;
+    game.height = height;
+
+    return { width, height };
+  };
+
+  const draw = (ctx, frameCount) => {
+    const { width, height } = updateScreenSize(ctx);
+
+    game.update(frameCount, keysHeld);
+    game.draw(ctx, frameCount);
+  };
+
+  return <Canvas draw={draw} tabIndex={0} onKeyDown={onKeyDown} onKeyUp={onKeyUp} />;
 }
 
 export default App;
