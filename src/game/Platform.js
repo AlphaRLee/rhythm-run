@@ -1,10 +1,8 @@
-class Platform {
-  constructor({ game, x, y, width, height } = {}) {
-    this.game = game;
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
+import Sprite from "./Sprite";
+
+class Platform extends Sprite {
+  constructor(spriteOpts) {
+    super(spriteOpts);
   }
 
   draw(ctx, frameCount) {

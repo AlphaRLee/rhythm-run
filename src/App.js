@@ -24,7 +24,7 @@ function App() {
     keysHeld[event.key] = false;
 
     if (key == lastKeyDown) {
-      lastKeyDown = null; // Clear last key down
+      lastKeyDown = null; // Clear last key down after key is released
     }
   };
 

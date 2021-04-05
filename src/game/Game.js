@@ -1,4 +1,5 @@
 import Player from "./Player";
+import Platform from "./Platform";
 
 class Game {
   constructor({ width, height }) {
@@ -9,6 +10,7 @@ class Game {
 
     this.gravity = 1;
 
+    this.platforms = this.createPlatforms();
     this.player = new Player({ game: this, x: 100, y: 200 });
   }
 
@@ -24,6 +26,7 @@ class Game {
 
     ctx.translate(this.origin.x, this.origin.y);
 
+    this.platforms.forEach((p) => p.draw(ctx, frameCount));
     this.player.draw(ctx, frameCount);
 
     ctx.translate(-this.origin.x, -this.origin.y);
@@ -48,6 +51,18 @@ class Game {
       this.player.jump();
     }
   };
+
+  createPlatforms() {
+    // TODO: Fix hardcoded list of platforms
+    const platformData = [
+      { x: 50, y: 600, width: 200, height: 50 },
+      { x: 350, y: 500, width: 200, height: 50 },
+      { x: 500, y: 600, width: 200, height: 50 },
+      { x: 700, y: 400, width: 200, height: 50 },
+    ];
+
+    return platformData.map((data) => new Platform({ game: this, ...data }));
+  }
 }
 
 export default Game;
