@@ -4,3 +4,27 @@ html, body {
   margin: 0;
   overflow: hidden; /* Hides scrollbars */
 }
+
+.landing-menu-enter {
+  opacity: 0.01;
+}
+
+.landing-menu-enter.landing-menu-enter-active {
+  opacity: 0.9;
+  transition: opacity 200ms ease-in;
+}
+
+.landing-menu-leave {
+  opacity: 0.9;
+}
+
+.landing-menu-leave.landing-menu-leave-active {
+  opacity: 0.01;
+  transition: opacity 200ms ease-in;
+}
+
+.absolute-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+}

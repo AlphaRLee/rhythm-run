@@ -11,7 +11,7 @@ const useCanvas = (draw) => {
     let animationFrameId;
 
     const render = () => {
-      draw(ctx, frameCount);
+      draw && draw(ctx, frameCount);
       animationFrameId = window.requestAnimationFrame(render);
       frameCount++;
     };

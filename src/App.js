@@ -1,6 +1,9 @@
 import React from "react";
+import { TransitionGroup } from "react-transition-group";
 import Canvas from "./Canvas";
 import Game from "./game/Game";
+import AudioVisualizer from "./audio/AudioVisualizer";
+import LandingMenu from "./menu/LandingMenu";
 
 function App() {
   const game = new Game({ width: window.innerWidth, height: window.innerHeight });
@@ -46,7 +49,15 @@ function App() {
     game.draw(ctx, frameCount);
   };
 
-  return <Canvas draw={draw} tabIndex={0} onKeyDown={onKeyDown} onKeyUp={onKeyUp} />;
+  return (
+    <>
+      <AudioVisualizer />
+      <Canvas draw={draw} tabIndex={0} onKeyDown={onKeyDown} onKeyUp={onKeyUp} className="absolute-canvas" />
+      <TransitionGroup transitionName="landing-menu" transitionEnterTimeout={200} transitionLeaveTimeout={200}>
+        <LandingMenu key={"landingMenu"} />
+      </TransitionGroup>
+    </>
+  );
 }
 
 export default App;

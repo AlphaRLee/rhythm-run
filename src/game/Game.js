@@ -20,8 +20,9 @@ class Game {
   }
 
   draw(ctx, frameCount) {
-    ctx.fillStyle = "#44a8ff";
-    ctx.fillRect(0, 0, this.width, this.height);
+    // ctx.fillStyle = "#44a8ff";
+    // ctx.fillRect(0, 0, this.width, this.height);
+    ctx.clearRect(0, 0, this.width, this.height);
 
     const { x: cameraX, y: cameraY } = this.calculateCameraPos();
     ctx.translate(cameraX, cameraY);
@@ -33,11 +34,10 @@ class Game {
   }
 
   calculateCameraPos() {
-    const temp = {
+    return {
       x: this.playerCameraPos.x - this.player.x,
       y: this.playerCameraPos.y - this.player.y,
     };
-    return temp;
   }
 
   handleKeysHeld(keysHeld) {
