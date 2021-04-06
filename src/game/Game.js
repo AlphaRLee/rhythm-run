@@ -6,12 +6,11 @@ class Game {
     this.width = width;
     this.height = height;
 
-    this.origin = { x: 0, y: 0 }; // The origin to draw the screen from, from bottom left corner
-
     this.gravity = 1;
 
     this.platforms = this.createPlatforms();
     this.player = new Player({ game: this, x: 100, y: 200 });
+    this.playerCameraPos = { x: 250, y: 400 }; // Fix the player at this position visually
   }
 
   update(frameCount, keysHeld) {
@@ -24,12 +23,21 @@ class Game {
     ctx.fillStyle = "#44a8ff";
     ctx.fillRect(0, 0, this.width, this.height);
 
-    ctx.translate(this.origin.x, this.origin.y);
+    const { x: cameraX, y: cameraY } = this.calculateCameraPos();
+    ctx.translate(cameraX, cameraY);
 
     this.platforms.forEach((p) => p.draw(ctx, frameCount));
     this.player.draw(ctx, frameCount);
 
-    ctx.translate(-this.origin.x, -this.origin.y);
+    ctx.translate(-cameraX, -cameraY);
+  }
+
+  calculateCameraPos() {
+    const temp = {
+      x: this.playerCameraPos.x - this.player.x,
+      y: this.playerCameraPos.y - this.player.y,
+    };
+    return temp;
   }
 
   handleKeysHeld(keysHeld) {
