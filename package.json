@@ -28,6 +28,7 @@
     "audiomotion-analyzer": "^3.2.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
+    "react-dropzone": "^11.3.2",
     "react-transition-group": "^4.4.1",
     "regenerator-runtime": "^0.13.7"
   }

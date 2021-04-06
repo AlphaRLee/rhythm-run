@@ -1,28 +1,30 @@
 import React from "react";
-import AudioController from "../audio/AudioController";
+import AudioUserController from "../audio/AudioUserController";
+import OverlayMenu from "./OverlayMenu";
 
 function LandingMenu(props) {
+  const { audioRef, onPlay } = props;
+
   const menuStyle = {
     backgroundColor: "#444444",
     opacity: 0.9,
   };
 
   return (
-    <div className="position-absolute w-100 h-100 d-flex" style={menuStyle}>
-      <div className="container my-auto">
-        <div className="row d-flex text-white mb-5" style={{ fontFamily: "Comfortaa, cursive" }}>
-          <h1 className="display-1 mx-auto">Rhythm Run</h1>
-          <p>A platformer built to the beat</p>
-          <p>
-            By Richard Lee&nbsp;&nbsp;&nbsp;&nbsp;
-            <a href="https://github.com/AlphaRLee" className="link-light">
-              <i className="fa fa-github fa-lg"></i>
-            </a>
-          </p>
-        </div>
-        <AudioController />
+    <OverlayMenu>
+      <div className="mb-5">
+        <h1 className="display-1">Rhythm Run</h1>
+        <p>
+          A platformer built to the beat
+          <br />
+          By Richard Lee&nbsp;&nbsp;&nbsp;&nbsp;
+          <a href="https://github.com/AlphaRLee/rhythm-run" target="_blank" className="link-light">
+            <i className="fa fa-github fa-lg"></i>
+          </a>
+        </p>
       </div>
-    </div>
+      {audioRef && <AudioUserController audioRef={audioRef} onPlay={onPlay} />}
+    </OverlayMenu>
   );
 }
 

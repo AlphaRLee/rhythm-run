@@ -5,26 +5,48 @@ html, body {
   overflow: hidden; /* Hides scrollbars */
 }
 
-.landing-menu-enter {
-  opacity: 0.01;
+.menu-enter {
+  opacity: 0;
 }
 
-.landing-menu-enter.landing-menu-enter-active {
+.menu-enter-active {
   opacity: 0.9;
-  transition: opacity 200ms ease-in;
+  transition: opacity 300ms;
 }
 
-.landing-menu-leave {
+.menu-leave {
   opacity: 0.9;
 }
 
-.landing-menu-leave.landing-menu-leave-active {
-  opacity: 0.01;
-  transition: opacity 200ms ease-in;
+.menu-leave-active {
+  opacity: 0;
+  transition: opacity 300ms;
 }
 
 .absolute-canvas {
   position: absolute;
   left: 0;
   top: 0;
+}
+
+.play-button {
+  opacity: 0.8;
+  transition: opacity 200ms;
+}
+
+.play-button:hover {
+  cursor: pointer;
+  opacity: 1;
+}
+
+.play-button:active {
+  outline: 0;
+}
+
+audio:active {
+  outline: 0;
+}
+
+.song-input {
+  outline: none;
 }
