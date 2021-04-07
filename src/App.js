@@ -20,6 +20,11 @@ function App() {
 
   const onPlay = () => {
     audioRef.current.play();
+    // FIXME: Focus on the canvas again with canvasRef.current.focus()
+  };
+
+  const onAudioEnd = () => {
+    setMenuOpen(true);
   };
 
   const onKeyDown = (event) => {
@@ -62,17 +67,10 @@ function App() {
 
   return (
     <>
-      <audio ref={audioRef} />
+      <audio ref={audioRef} onEnded={onAudioEnd} />
       <AudioVisualizer audioRef={audioRef} />
       <Canvas draw={draw} tabIndex={0} onKeyDown={onKeyDown} onKeyUp={onKeyUp} className="absolute-canvas" />
-      <CSSTransition
-        in={isMenuOpen}
-        unmountOnExit
-        classNames="menu"
-        timeout={300}
-        onEnter={() => console.log("huh")}
-        onExited={onPlay}
-      >
+      <CSSTransition in={isMenuOpen} unmountOnExit classNames="menu" timeout={300} onExited={onPlay}>
         <LandingMenu key={"landingMenu"} audioRef={audioRef} onPlay={onStartPlay} />
       </CSSTransition>
     </>

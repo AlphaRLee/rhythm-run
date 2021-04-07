@@ -14,11 +14,11 @@ html, body {
   transition: opacity 300ms;
 }
 
-.menu-leave {
+.menu-exit {
   opacity: 0.9;
 }
 
-.menu-leave-active {
+.menu-exit-active {
   opacity: 0;
   transition: opacity 300ms;
 }

@@ -20,9 +20,9 @@ class Game {
   }
 
   draw(ctx, frameCount) {
-    // ctx.fillStyle = "#44a8ff";
-    // ctx.fillRect(0, 0, this.width, this.height);
     ctx.clearRect(0, 0, this.width, this.height);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.fillRect(0, 0, this.width, this.height);
 
     const { x: cameraX, y: cameraY } = this.calculateCameraPos();
     ctx.translate(cameraX, cameraY);

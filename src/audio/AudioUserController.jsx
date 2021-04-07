@@ -37,12 +37,12 @@ function AudioUserController(props) {
     <div className="row">
       <div className="col-m-6 col-lg-9 align-items-center d-flex">
         <div className="d-block">
-          <button className="btn btn-outline-light ms-3 mb-2">
-            <div {...getRootProps()}>
+          <div {...getRootProps()}>
+            <button className="btn btn-outline-light ms-3 mb-2">
               <input className="song-input" {...getInputProps()} accept="audio/*" />
               {isDragActive ? "Drag file here" : "Upload song"}
-            </div>
-          </button>
+            </button>
+          </div>
           <br />
           <span className="mt-0">
             {missingFileError ? (
