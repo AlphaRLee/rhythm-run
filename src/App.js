@@ -59,10 +59,9 @@ function App() {
   };
 
   const draw = (ctx, frameCount) => {
-    const { width, height } = updateScreenSize(ctx);
-
-    game.update(frameCount, keysHeld);
-    game.draw(ctx, frameCount);
+    // const { width, height } = updateScreenSize(ctx);
+    // game.update(frameCount, keysHeld);
+    // game.draw(ctx, frameCount);
   };
 
   return (
