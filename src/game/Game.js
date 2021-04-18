@@ -3,20 +3,34 @@ import Platform from "./Platform";
 
 class Game {
   constructor({ width, height }) {
+    this.isRunning = false;
+
     this.width = width;
     this.height = height;
 
     this.gravity = 1;
 
-    this.platforms = this.createPlatforms();
+    this.platforms = this.createPlatforms([
+      { x: 50, y: 600, width: 200, height: 50, createdTime: 0 },
+      { x: 350, y: 500, width: 200, height: 50, createdTime: 0 },
+      { x: 500, y: 600, width: 200, height: 50, createdTime: 0 },
+      { x: 700, y: 400, width: 200, height: 50, createdTime: 0 },
+    ]);
     this.player = new Player({ game: this, x: 100, y: 200 });
     this.playerCameraPos = { x: 250, y: 400 }; // Fix the player at this position visually
+
+    this.timer = 0;
   }
 
-  update(frameCount, keysHeld) {
-    this.player.update(frameCount);
+  update(frameCount, keysHeld, notes) {
+    if (!this.isRunning) return;
 
+    // this.handleNotes(notes);
+
+    this.player.update(frameCount);
     this.handleKeysHeld(keysHeld);
+
+    this.timer++;
   }
 
   draw(ctx, frameCount) {
@@ -60,16 +74,32 @@ class Game {
     }
   };
 
-  createPlatforms() {
-    // TODO: Fix hardcoded list of platforms
-    const platformData = [
-      { x: 50, y: 600, width: 200, height: 50 },
-      { x: 350, y: 500, width: 200, height: 50 },
-      { x: 500, y: 600, width: 200, height: 50 },
-      { x: 700, y: 400, width: 200, height: 50 },
-    ];
+  createPlatforms = (platformData) => platformData.map((data) => new Platform({ game: this, ...data }));
 
-    return platformData.map((data) => new Platform({ game: this, ...data }));
+  handleNotes(notes) {
+    notes = notes.filter((noteIndex) => noteIndex !== 0);
+    if (!notes.length) {
+      return;
+    }
+
+    const xOffset = this.timer * 8;
+    const yScale = -100;
+    const platformData = notes.map((note) => ({
+      x: xOffset,
+      y: yScale * note + 300,
+      width: 50,
+      height: 20,
+      createdTime: this.timer,
+    }));
+    this.platforms.push(...this.createPlatforms(platformData));
+
+    this.removeOldPlatforms();
+  }
+
+  removeOldPlatforms() {
+    const duration = 100;
+    const expiryTime = this.timer - duration;
+    this.platforms = this.platforms.filter((platform) => platform.createdTime >= expiryTime);
   }
 }
 

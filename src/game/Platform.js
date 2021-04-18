@@ -1,8 +1,9 @@
 import Sprite from "./Sprite";
 
 class Platform extends Sprite {
-  constructor(spriteOpts) {
-    super(spriteOpts);
+  constructor(opts) {
+    super(opts);
+    this.createdTime = opts.createdTime;
   }
 
   draw(ctx, frameCount) {

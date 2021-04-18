@@ -8,6 +8,7 @@ import LandingMenu from "./menu/LandingMenu";
 function App() {
   const [isMenuOpen, setMenuOpen] = useState(true);
   const audioRef = useRef(null);
+  const notesRef = useRef([]);
 
   const game = new Game({ width: window.innerWidth, height: window.innerHeight });
 
@@ -20,6 +21,7 @@ function App() {
 
   const onPlay = () => {
     audioRef.current.play();
+    game.isRunning = true;
     // FIXME: Focus on the canvas again with canvasRef.current.focus()
   };
 
@@ -59,15 +61,15 @@ function App() {
   };
 
   const draw = (ctx, frameCount) => {
-    // const { width, height } = updateScreenSize(ctx);
-    // game.update(frameCount, keysHeld);
-    // game.draw(ctx, frameCount);
+    const { width, height } = updateScreenSize(ctx);
+    game.update(frameCount, keysHeld, notesRef.current);
+    game.draw(ctx, frameCount);
   };
 
   return (
     <>
       <audio ref={audioRef} onEnded={onAudioEnd} />
-      <AudioVisualizer audioRef={audioRef} />
+      <AudioVisualizer audioRef={audioRef} setNotes={(notes) => (notesRef.current = notes)} />
       <Canvas draw={draw} tabIndex={0} onKeyDown={onKeyDown} onKeyUp={onKeyUp} className="absolute-canvas" />
       <CSSTransition in={isMenuOpen} unmountOnExit classNames="menu" timeout={300} onExited={onPlay}>
         <LandingMenu key={"landingMenu"} audioRef={audioRef} onPlay={onStartPlay} />

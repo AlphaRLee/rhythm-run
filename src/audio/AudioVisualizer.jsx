@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import AudioMotionAnalyzer from "audiomotion-analyzer";
 
 function AudioVisualizer(props) {
-  const { audioRef } = props;
+  const { audioRef, setNotes } = props;
 
   const audioCanvasRef = useRef(null);
   let audioMotion = null;
@@ -122,7 +122,7 @@ function AudioVisualizer(props) {
   const risingThreshold = 50; // FIXME: Needs calibration
   const fallingThreshold = 40; // FIXME: Needs calibration
   const lowFreqIndex = 27; // C3 - Notes lower than this will not apply penalization on its harmonics when they are detected
-  const suppressFactor = 0.7; // How much to suppress a harmonic, relative to the harmonic before it
+  const suppressFactor = 0.9; // How much to suppress a harmonic, relative to the harmonic before it
 
   let energyFrame = [];
   let energyDerivFreq = []; // d(energies)/df
@@ -183,16 +183,7 @@ function AudioVisualizer(props) {
       }
     }
 
-    /*
-     TODO:
-      Low weights on very low registers (except for bass drump)
-        Song of Storms has A2 (110) at beginning, but it's easier to hear A3 (220)
-      Search for "peaks". 3-4 notes wide are good
-      The tallest harmonic isn't the same as the fundamental frequency
-      Chords will be inevitable. You can probably choose highest note
-      -50db is a good enough threshold to not get fund freq too low
-        Will need to shave off bass - Song of Storms tends to peak at -30db
-    */
+    setNotes(noteCandidates);
   };
 
   const semitones = 12;
@@ -240,11 +231,6 @@ function AudioVisualizer(props) {
 
       ctx.fillRect(i * scale, window.innerHeight - height, scale - 1, height);
     }
-
-    // ctx.fillStyle = "pink";
-    // energyDerivFreq.forEach((height, i) => {
-    //   ctx.fillRect(i * scale + scale / 2, window.innerHeight - height, scale - 1, height);
-    // });
   };
 
   const onCanvasDraw = () => {
