@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { CSSTransition } from "react-transition-group";
 import Canvas from "./Canvas";
 import Game from "./game/Game";
-import AudioVisualizer from "./audio/AudioVisualizer";
+import SongAnalyzer from "./audio/SongAnalyzer";
 import LandingMenu from "./menu/LandingMenu";
 
 function App() {
@@ -10,7 +10,8 @@ function App() {
   const audioRef = useRef(null);
   const notesRef = useRef([]);
 
-  const game = new Game({ width: window.innerWidth, height: window.innerHeight });
+  const gameRef = useRef(new Game({ width: window.innerWidth, height: window.innerHeight }));
+  const game = gameRef.current;
 
   const keysHeld = {};
   let lastKeyDown = null;
@@ -68,12 +69,22 @@ function App() {
 
   return (
     <>
-      <audio ref={audioRef} onEnded={onAudioEnd} />
-      <AudioVisualizer audioRef={audioRef} setNotes={(notes) => (notesRef.current = notes)} />
-      <Canvas draw={draw} tabIndex={0} onKeyDown={onKeyDown} onKeyUp={onKeyUp} className="absolute-canvas" />
-      <CSSTransition in={isMenuOpen} unmountOnExit classNames="menu" timeout={300} onExited={onPlay}>
+      <audio ref={audioRef} onEnded={onAudioEnd} controls />
+      <SongAnalyzer audioRef={audioRef} setNotes={(notes) => (notesRef.current = notes)} />
+      {/* FIXME: Restore canvas */}
+      {/* <Canvas draw={draw} tabIndex={0} onKeyDown={onKeyDown} onKeyUp={onKeyUp} className="absolute-canvas" /> */}
+      {/* <CSSTransition in={isMenuOpen} unmountOnExit classNames="menu" timeout={300} onExited={onPlay}>
         <LandingMenu key={"landingMenu"} audioRef={audioRef} onPlay={onStartPlay} />
-      </CSSTransition>
+      </CSSTransition> */}
+      {isMenuOpen && (
+        <LandingMenu
+          audioRef={audioRef}
+          onPlay={() => {
+            onStartPlay();
+            onPlay();
+          }}
+        />
+      )}
     </>
   );
 }

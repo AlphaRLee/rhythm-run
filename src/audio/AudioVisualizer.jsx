@@ -1,14 +1,19 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import AudioMotionAnalyzer from "audiomotion-analyzer";
+import SpectrumAnalyzer from "./SpectrumAnalyzer"; // TODO: Delete, used for temp analysis only
 
 function AudioVisualizer(props) {
   const { audioRef, setNotes } = props;
 
   const audioCanvasRef = useRef(null);
-  let audioMotion = null;
+  const timerRef = useRef(0);
+  let timer = timerRef.current;
+  const audioMotionRef = useRef(null);
 
-  let energiesHistory = [];
-  const energyFramesCount = 1;
+  // FIXME: Temp state variables for calibration --------------
+  const [risingThresholdIn, setRisingThresholdIn] = useState(110);
+  const [audioMotion, setAudioMotion] = useState(null); // Hacky workaround - stateful reference to a ref, should experiment with getting rid of the ref in between
+  // ----------------------------------------------------------
 
   const frequencies = Object.freeze([
     28, // A0
@@ -112,14 +117,17 @@ function AudioVisualizer(props) {
     7902, // B8
   ]);
 
+  const semitones = 12;
+  const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
   // Exponential equation to convert from index i to the corresponding frequency
   // Scale (s) and rate (r) used in exponential equation f(i) = s * r^i
-  // Numbers created by entering frequencies into a regression model. rate is roughly 2^(1/12)
+  // Numbers created by entering frequencies into a regression model. Rate is roughly 2^(1/12)
   const indexToFreqScale = 27.5007742362;
   const indexToFreqRate = 1.05946289375;
 
   const energyThreshold = 50; // FIXME: This is -50db, energy will be a totally different unit. More accurate method would be X db above the bass (roughly 50-60 db)
-  const risingThreshold = 50; // FIXME: Needs calibration
+  // const risingThreshold = 100; // FIXME: Needs calibration, RESTORE
   const fallingThreshold = 40; // FIXME: Needs calibration
   const lowFreqIndex = 27; // C3 - Notes lower than this will not apply penalization on its harmonics when they are detected
   const suppressFactor = 0.9; // How much to suppress a harmonic, relative to the harmonic before it
@@ -130,13 +138,14 @@ function AudioVisualizer(props) {
 
   let suppressedEnergies = []; // FIXME: Only used for visuals, delete
 
-  const calculateEnergies = () => {
-    energyFrame = frequencies.map((f) => audioMotion.getEnergy(f) * 500);
+  const maxHistoryLength = 40; // Max length of any note
+  const risingDurationThreshold = 3; // Number of frames a note must be present before considered actively held
+  const fallingDurationThreshold = 3; // Number of frames a note must be absent before being considered released
+  let risingNoteTimes = Array(frequencies.length).fill([]); // Timestamps when notes have been added
+  let fallingNoteTimes = Array(frequencies.length).fill([]); // Timestamps when notes have been removed
 
-    if (energiesHistory.length >= energyFramesCount) {
-      energiesHistory.shift();
-    }
-    energiesHistory.push(energyFrame);
+  const calculateEnergies = () => {
+    energyFrame = frequencies.map((f) => audioMotionRef.current.getEnergy(f) * 500);
 
     suppressedEnergies = Array(frequencies.length).fill(0);
     energyDerivFreq = []; // d(energies)/df
@@ -156,7 +165,9 @@ function AudioVisualizer(props) {
       }
 
       // Record if a frequency is above the rising edge threshold
-      if (energyDerivFreq[i] >= risingThreshold) {
+      // if (energyDerivFreq[i] >= risingThreshold) { // FIXME: Restore
+      // FIXME: delete if conditional
+      if (energyDerivFreq[i] >= risingThresholdIn) {
         localMaxFreqIndex = i;
         localMaxEnergy = energy;
       }
@@ -186,11 +197,12 @@ function AudioVisualizer(props) {
     setNotes(noteCandidates);
   };
 
-  const semitones = 12;
-  const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-
-  // Get the indices of the notes that are harmonics to the given frequency
-  // Note - this excldues the frequency index itself
+  /**
+   * Get the indices of the notes that are harmonics to the given frequency
+   * Note - this excldues the frequency index itself
+   * @param {Number} freqIndex The index representing the given frequency. E.g. 48 represents 440Hz
+   * @returns Array of indices for harmonics
+   */
   const harmonicIndices = (freqIndex) => {
     let harmonics = [];
     for (let i = freqIndex + semitones; i < frequencies.length; i += semitones) {
@@ -199,17 +211,22 @@ function AudioVisualizer(props) {
     return harmonics;
   };
 
+  /**
+   * Convert an index of a frequency to its corresponding note
+   * @param {Number} freqIndex The index representing the given frequency. E.g. 48 represents 440Hz
+   * @returns The note name. E.g. 440Hz is output as "A4"
+   */
   const frequencyToNote = (freqIndex) => {
-    freqIndex += 9;
+    freqIndex += 9; // Accomodtte 1-based index for notes
 
     const octave = Math.floor(freqIndex / semitones);
     const note = noteNames[freqIndex % semitones];
     return `${note}${octave}`;
   };
 
-  // Just for fun, delete
+  // Just for fun, spin the audioMotion visualizer
   const spinByEnergy = () => {
-    audioMotion.spinSpeed = Math.pow(audioMotion.getEnergy() + 0.5, 2);
+    audioMotionRef.current.spinSpeed = Math.pow(audioMotionRef.current.getEnergy() + 0.5, 2);
   };
 
   const drawNotes = (ctx, energyFrame, noteCandidates, energyDerivFreq) => {
@@ -234,16 +251,19 @@ function AudioVisualizer(props) {
   };
 
   const onCanvasDraw = () => {
+    if (!audioMotionRef.current) return;
+
     calculateEnergies();
 
-    const ctx = audioMotion.canvasCtx;
+    const ctx = audioMotionRef.current.canvasCtx;
     ctx.textAlign = "start";
-    ctx.font = "20px Georgia";
+    ctx.font = "18px Comfortaa";
 
     const scale = 20;
 
     drawNotes(ctx, energyFrame, noteCandidates, energyDerivFreq);
-    spinByEnergy(); // FIXME: Just for fun, delete
+    spinByEnergy();
+    timerRef.current++;
   };
 
   useEffect(() => {
@@ -251,7 +271,8 @@ function AudioVisualizer(props) {
       return;
     }
 
-    audioMotion = new AudioMotionAnalyzer(audioCanvasRef.current, {
+    console.log("!!! audioRef", audioRef.current, "audioCanvasRef", audioCanvasRef.current);
+    audioMotionRef.current = new AudioMotionAnalyzer(audioCanvasRef.current, {
       source: audioRef.current,
       width: window.innerWidth,
       height: window.innerHeight,
@@ -263,9 +284,57 @@ function AudioVisualizer(props) {
       // showScaleY: true,
       onCanvasDraw,
     });
+    setAudioMotion(audioMotionRef.current); // FIXME: Hacky debugging, delete if unused
   }, [audioRef, audioCanvasRef]);
 
-  return <div ref={audioCanvasRef} className="position-absolute w-100 h-100" />;
+  // return <div ref={audioCanvasRef} className="position-absolute w-100 h-100" />; // FIXME: Restore - empty canvas
+
+  // FIXME: Delete - canvas with controls
+  const onRisingInputChange = (event) => {
+    event.preventDefault();
+    setRisingThresholdIn(event.target.value);
+  };
+
+  useEffect(() => {
+    if (!audioRef.current || !audioMotionRef.current) return;
+    audioMotionRef.current.onCanvasDraw = onCanvasDraw;
+  }, [risingThresholdIn, audioRef]);
+
+  const tempDisplay = () => {
+    return (
+      <>
+        <div ref={audioCanvasRef} className="position-absolute w-100 h-100" />
+        <SpectrumAnalyzer audioRef={audioRef} audioMotion={audioMotion} />
+        <div className="position-absolute">
+          <div className="form-group row">
+            <label htmlFor="input1" className="text-white col-3">
+              Input 1
+            </label>
+            <div className="col-9">
+              <input
+                type="number"
+                className="form-control"
+                id="input1"
+                value={risingThresholdIn}
+                onChange={onRisingInputChange}
+              />
+              <input
+                type="range"
+                className="form-range"
+                id="customRange1"
+                value={risingThresholdIn}
+                min={50}
+                max={200}
+                onChange={onRisingInputChange}
+              />
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  };
+
+  return tempDisplay();
 }
 
 export default AudioVisualizer;
