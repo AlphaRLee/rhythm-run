@@ -1,5 +1,5 @@
 import Player from "./Player";
-import Platform from "./Platform";
+import Platform from "./platform/Platform";
 
 class Game {
   constructor({ width, height }) {

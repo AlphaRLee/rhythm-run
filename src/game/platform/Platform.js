@@ -1,4 +1,4 @@
-import Sprite from "./Sprite";
+import Sprite from "../Sprite";
 
 class Platform extends Sprite {
   constructor(opts) {
