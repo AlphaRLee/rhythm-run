@@ -12,6 +12,7 @@ function AudioVisualizer(props) {
 
   // FIXME: Temp state variables for calibration --------------
   const [risingThresholdIn, setRisingThresholdIn] = useState(110);
+  const [showCandidateNotes, setShowCandidateNotes] = useState(true);
   const [audioMotion, setAudioMotion] = useState(null); // Hacky workaround - stateful reference to a ref, should experiment with getting rid of the ref in between
   // ----------------------------------------------------------
 
@@ -237,17 +238,23 @@ function AudioVisualizer(props) {
       const height = energyFrame[i];
 
       if (noteCandidates.includes(i)) {
-        ctx.fillStyle = "#ffffff";
-        ctx.fillText(frequencyToNote(i), i * scale, window.innerHeight - 530);
-
-        ctx.fillStyle = "#ffff77";
-        ctx.fillRect(i * scale, window.innerHeight - 500, scale - 1, 500);
+        drawCandidateNote(ctx, i, scale);
 
         ctx.fillStyle = "#88aaff";
       }
 
       ctx.fillRect(i * scale, window.innerHeight - height, scale - 1, height);
     }
+  };
+
+  const drawCandidateNote = (ctx, i, scale) => {
+    if (!showCandidateNotes) return;
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(frequencyToNote(i), i * scale, window.innerHeight - 530);
+
+    ctx.fillStyle = "#ffff77";
+    ctx.fillRect(i * scale, window.innerHeight - 500, scale - 1, 500);
   };
 
   const onCanvasDraw = () => {
@@ -271,7 +278,6 @@ function AudioVisualizer(props) {
       return;
     }
 
-    console.log("!!! audioRef", audioRef.current, "audioCanvasRef", audioCanvasRef.current);
     audioMotionRef.current = new AudioMotionAnalyzer(audioCanvasRef.current, {
       source: audioRef.current,
       width: window.innerWidth,
@@ -294,11 +300,15 @@ function AudioVisualizer(props) {
     event.preventDefault();
     setRisingThresholdIn(event.target.value);
   };
+  const onShowCandidateNotesChange = (event) => {
+    event.preventDefault();
+    setShowCandidateNotes(event.target.checked);
+  };
 
   useEffect(() => {
     if (!audioRef.current || !audioMotionRef.current) return;
     audioMotionRef.current.onCanvasDraw = onCanvasDraw;
-  }, [risingThresholdIn, audioRef]);
+  }, [risingThresholdIn, audioRef, showCandidateNotes]);
 
   const tempDisplay = () => {
     return (
@@ -328,6 +338,18 @@ function AudioVisualizer(props) {
                 onChange={onRisingInputChange}
               />
             </div>
+          </div>
+          <div className="form-check">
+            <input
+              type="checkbox"
+              className="form-check-input"
+              id="show-yellow"
+              checked={showCandidateNotes}
+              onChange={onShowCandidateNotesChange}
+            />
+            <label htmlFor="show-yellow" className="form-check-label text-white">
+              Show yellow
+            </label>
           </div>
         </div>
       </>

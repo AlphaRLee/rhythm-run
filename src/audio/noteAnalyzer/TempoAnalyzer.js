@@ -1,7 +1,9 @@
+import HistoryQueue from "../util/HistoryQueue";
+
 export class TempoAnalyzer {
   constructor() {
-    this.energyHistory = [];
-    this.risingEdgeHistory = [];
+    this.energyHistory = new HistoryQueue();
+    this.risingEdgeHistory = new HistoryQueue();
     this.maxHistoryLength = 200;
 
     this.newPeakDetected = false;
@@ -15,22 +17,9 @@ export class TempoAnalyzer {
   update(avgEnergy, timer) {
     this.newPeakDetected = false;
 
-    this.addToHistory(avgEnergy, this.energyHistory, this.maxHistoryLength);
+    this.energyHistory.add(avgEnergy);
     this.convolveTail(avgEnergy);
     this.updatePeak(timer);
-  }
-
-  /**
-   * Push the entry in and maintain the array length
-   * @param {Number} value
-   * @param {Array} history
-   * @param {Number} maxHistoryLength
-   */
-  addToHistory(value, history, maxHistoryLength) {
-    history.push(x);
-    if (history.length >= maxHistoryLength) {
-      history.splice(0, history.length - maxHistoryLength);
-    }
   }
 
   /**
@@ -46,14 +35,14 @@ export class TempoAnalyzer {
       sum += signalVal * kernel[i];
     }
 
-    this.addToHistory(sum, this.risingEdgeHistory, this.maxHistoryLength);
+    this.risingEdgeHistory.add(sum);
   }
 
   /**
    * Find if latest signal has peaked or not
    */
   updatePeak(timer) {
-    const index = this.risingEdgeHistory.length - 1;
+    const index = this.risingEdgeHistory.history.length - 1;
     if (this.risingEdgeHistory[index] <= 0 || this.risingEdgeHistory[index - 1]) return;
 
     this.prevPeak = this.peak;

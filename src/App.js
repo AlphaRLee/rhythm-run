@@ -67,24 +67,34 @@ function App() {
     game.draw(ctx, frameCount);
   };
 
+  // MUTUALLY EXCLUSIVE WITH renderMenuWithoutTransition
+  const renderMenuWithTransition = () => (
+    <CSSTransition in={isMenuOpen} unmountOnExit classNames="menu" timeout={300} onExited={onPlay}>
+      <LandingMenu key={"landingMenu"} audioRef={audioRef} onPlay={onStartPlay} />
+    </CSSTransition>
+  );
+
+  // MUTUALLY EXCLUSIVE WITH renderMenuWithTransition
+  // Using this one as temp for now because transitions seem broken
+  const renderMenuWithoutTransition = () =>
+    isMenuOpen && (
+      <LandingMenu
+        audioRef={audioRef}
+        onPlay={() => {
+          onStartPlay();
+          onPlay();
+        }}
+      />
+    );
+
   return (
     <>
       <audio ref={audioRef} onEnded={onAudioEnd} controls />
       <SongAnalyzer audioRef={audioRef} setNotes={(notes) => (notesRef.current = notes)} />
       {/* FIXME: Restore canvas */}
       {/* <Canvas draw={draw} tabIndex={0} onKeyDown={onKeyDown} onKeyUp={onKeyUp} className="absolute-canvas" /> */}
-      {/* <CSSTransition in={isMenuOpen} unmountOnExit classNames="menu" timeout={300} onExited={onPlay}>
-        <LandingMenu key={"landingMenu"} audioRef={audioRef} onPlay={onStartPlay} />
-      </CSSTransition> */}
-      {isMenuOpen && (
-        <LandingMenu
-          audioRef={audioRef}
-          onPlay={() => {
-            onStartPlay();
-            onPlay();
-          }}
-        />
-      )}
+      {/* renderMenuWithTransition() */}
+      {renderMenuWithoutTransition()}
     </>
   );
 }
