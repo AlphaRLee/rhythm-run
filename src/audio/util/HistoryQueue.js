@@ -3,7 +3,8 @@
  * Extends conventional array functionality
  */
 export default class HistoryQueue extends Array {
-  constructor({ maxLength = 200 } = { maxLength: 200 }) {
+  constructor({ maxLength = 200 } = {}) {
+    super();
     this.maxLength = maxLength;
   }
 
@@ -13,7 +14,7 @@ export default class HistoryQueue extends Array {
    */
   add(value) {
     this.push(value);
-    if (this.length >= this.maxLength) {
+    if (this.length > this.maxLength) {
       this.splice(0, this.length - this.maxLength);
     }
   }

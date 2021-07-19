@@ -37,8 +37,7 @@ function SpectrumAnalyzer(props) {
     };
   }, [audioRef, audioMotion]);
 
-  // return <Canvas draw={draw} className="absolute-canvas w-100 h-100" />;
-  return <Canvas draw={draw} />;
+  return <Canvas draw={draw} width={100} height={54} />;
 }
 
 export default SpectrumAnalyzer;

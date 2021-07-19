@@ -4,6 +4,7 @@ import Canvas from "./Canvas";
 import Game from "./game/Game";
 import SongAnalyzer from "./audio/SongAnalyzer";
 import LandingMenu from "./menu/LandingMenu";
+import AudioVisualizer from "./audio/AudioVisualizer";
 
 function App() {
   const [isMenuOpen, setMenuOpen] = useState(true);
@@ -90,7 +91,7 @@ function App() {
   return (
     <>
       <audio ref={audioRef} onEnded={onAudioEnd} controls />
-      <SongAnalyzer audioRef={audioRef} setNotes={(notes) => (notesRef.current = notes)} />
+      <AudioVisualizer audioRef={audioRef} setNotes={(notes) => (notesRef.current = notes)} />
       {/* FIXME: Restore canvas */}
       {/* <Canvas draw={draw} tabIndex={0} onKeyDown={onKeyDown} onKeyUp={onKeyUp} className="absolute-canvas" /> */}
       {/* renderMenuWithTransition() */}

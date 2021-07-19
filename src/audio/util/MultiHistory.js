@@ -2,10 +2,16 @@
  * History of all the energies
  * Stored as an array of HistoryQueues
  */
+import HistoryQueue from "./HistoryQueue";
+import { frequencies } from "./frequencyUtils";
+
 export default class MultiHistory {
-  constructor({ maxLength = 200 } = { maxLength: 200 }) {
+  constructor({ maxLength = 3, historiesLength = frequencies.length } = {}) {
     this.maxLength = maxLength;
     this.histories = [];
+    for (let i = 0; i < historiesLength; i++) {
+      this.histories.push(new HistoryQueue({ maxLength }));
+    }
   }
 
   at(i) {

@@ -1,17 +1,17 @@
-import HistoryQueue from "../util/HistoryQueue";
 import MultiHistory from "../util/MultiHistory";
 
 /**
  * Many instruments have harmonics and chords
  * This analyzer seeks common rises over time and correlates those notes together
  */
-class ChordAnalyzer {
+export default class ChordAnalyzer {
   constructor() {
     // History of all energies by frequency
     this.energiesHistories = new MultiHistory();
     this.risingEnergiesHistories = new MultiHistory();
 
-    // FIXME: Need to get the correct number of histories to initialize
+    // FIXME: delete
+    this.debug = [];
   }
 
   update(energies) {
@@ -20,8 +20,6 @@ class ChordAnalyzer {
     this.findChords();
     /*
     FIXME: 
-      Steal the convolveTail method from TempoAnalyzer
-      Calculate the covolution on the tail for all frequencies
       Test if, for each frequency, there is a similar trend
         (consider sorting frequencies by rising edges and correlating those)
       Return the largest of those notes
@@ -39,6 +37,7 @@ class ChordAnalyzer {
     const kernel = [1, 0, -1];
     const risingEnergies = this.energiesHistories.map((history) => history.convolveTail(kernel));
     this.risingEnergiesHistories.add(risingEnergies);
+    this.debug = this.risingEnergiesHistories.last(); // FIXME: Delete
   }
 
   findChords() {
