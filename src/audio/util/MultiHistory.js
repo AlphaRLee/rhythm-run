@@ -23,6 +23,14 @@ export default class MultiHistory {
   }
 
   /**
+   * Get the history queue at the given index
+   * @param {number} i
+   */
+  history(i) {
+    return this.histories[i];
+  }
+
+  /**
    * Add new entries to all histories
    * @param {*} audioMotion
    */

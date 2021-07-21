@@ -10,9 +10,10 @@ export default class SongAnalyzer {
       width: window.innerWidth,
       height: window.innerHeight,
       mode: 2,
+      // mode: 8, // Full octave bands
       radial: true,
       spinSpeed: 0.2,
-      onCanvasDraw: this.onCanvasDraw.bind(this), // Bind this explicitly to SongAnalyzer
+      onCanvasDraw: this.update.bind(this), // Bind this explicitly to SongAnalyzer
     });
 
     this.timer = 0;
@@ -22,7 +23,7 @@ export default class SongAnalyzer {
 
     // FIXME: utility tools, delete --------------------
     this.energyThreshold = 50;
-    this.showCandidateNotes = true;
+    this.showCandidateNotes = false;
     this.risingThreshold = 100;
     this.fallingThreshold = 40;
     this.lowFreqIndex = 27; // C3 - Notes lower than this will not apply penalization on its harmonics when they are detected
@@ -33,14 +34,16 @@ export default class SongAnalyzer {
     // -------------------------------------------------
   }
 
-  onCanvasDraw() {
+  update() {
     if (this.audioSource.paused) return;
 
     let energies = this.calculateEnergies();
-    energies = this.subtractAverageEnergy(energies, true);
+    const diffEnergies = this.subtractAverageEnergy(energies, true);
+    energies = diffEnergies;
     const noteCandidates = this.calculateNoteCandidates(energies);
 
-    this.chordAnalyzer.update(energies);
+    this.chordAnalyzer.update(diffEnergies);
+    const risingNotes = this.chordAnalyzer.output();
 
     this.drawNotes(this.audioMotion.canvasCtx, this.energyFrame, noteCandidates, this.energyDerivFreq);
     this.drawDebug(this.audioMotion.canvasCtx, this.chordAnalyzer.debug); // FIXME: delete

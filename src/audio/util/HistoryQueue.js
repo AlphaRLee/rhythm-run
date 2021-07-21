@@ -43,4 +43,12 @@ export default class HistoryQueue extends Array {
 
     return sum;
   }
+
+  /**
+   * Approximate a derivative on the last few elements by using convolveTail
+   * @returns
+   */
+  lastDiff() {
+    return this.convolveTail([1, 0, -1]);
+  }
 }

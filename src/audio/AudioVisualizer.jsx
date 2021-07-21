@@ -1,7 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import AudioMotionAnalyzer from "audiomotion-analyzer";
 import SpectrumAnalyzer from "./SpectrumAnalyzer"; // TODO: Delete, used for temp analysis only
-import { frequencies, harmonicIndices, frequencyToNote } from "./util/frequencyUtils";
 import SongAnalyzer from "./SongAnalyzer";
 
 function AudioVisualizer(props) {
@@ -11,8 +9,8 @@ function AudioVisualizer(props) {
   const [songAnalyzer, setSongAnalyzer] = useState();
 
   // FIXME: Temp state variables for calibration --------------
-  const [risingThresholdIn, setRisingThresholdIn] = useState(110);
-  const [showCandidateNotes, setShowCandidateNotes] = useState(true);
+  const [risingThresholdIn, setRisingThresholdIn] = useState(0.1);
+  const [showCandidateNotes, setShowCandidateNotes] = useState(false);
   // ----------------------------------------------------------
 
   useEffect(() => {
@@ -39,7 +37,7 @@ function AudioVisualizer(props) {
   useEffect(() => {
     if (!audioRef.current || !songAnalyzer) return;
 
-    songAnalyzer.risingThreshold = risingThresholdIn;
+    songAnalyzer.chordAnalyzer.minRisingThreshold = risingThresholdIn;
     songAnalyzer.showCandidateNotes = showCandidateNotes;
   }, [risingThresholdIn, audioRef, showCandidateNotes]);
 
@@ -66,8 +64,8 @@ function AudioVisualizer(props) {
                 className="form-range"
                 id="customRange1"
                 value={risingThresholdIn}
-                min={50}
-                max={200}
+                min={0}
+                max={1}
                 onChange={onRisingInputChange}
               />
             </div>
