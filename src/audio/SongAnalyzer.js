@@ -1,25 +1,32 @@
 import AudioMotionAnalyzer from "audiomotion-analyzer";
 import ChordAnalyzer from "./noteAnalyzer/ChordAnalyzer";
+import DurationAnalyzer from "./noteAnalyzer/DurationAnalyzer";
+import { TempoAnalyzer } from "./noteAnalyzer/TempoAnalyzer";
 import { frequencies, harmonicIndices, frequencyToNote } from "./util/frequencyUtils";
 
 export default class SongAnalyzer {
   constructor(canvas, audioSource) {
     this.audioSource = audioSource;
-    this.audioMotion = new AudioMotionAnalyzer(canvas, {
+    this.audioMotion = new AudioMotionAnalyzer(null, {
       source: audioSource,
-      width: window.innerWidth,
-      height: window.innerHeight,
-      mode: 2,
-      // mode: 8, // Full octave bands
-      radial: true,
-      spinSpeed: 0.2,
+      useCanvas: false,
+      // width: window.innerWidth,
+      // height: window.innerHeight,
+      // mode: 2,
+      // radial: true,
+      // spinSpeed: 0.2,
       onCanvasDraw: this.update.bind(this), // Bind this explicitly to SongAnalyzer
     });
+
+    this.canvas = canvas;
+    this.canvasCtx = this.canvas.getContext("2d");
 
     this.timer = 0;
 
     // Analyzers
+    this.tempoAnalyzer = new TempoAnalyzer();
     this.chordAnalyzer = new ChordAnalyzer();
+    this.durationAnalyzer = new DurationAnalyzer();
 
     // FIXME: utility tools, delete --------------------
     this.energyThreshold = 50;
@@ -35,20 +42,31 @@ export default class SongAnalyzer {
   }
 
   update() {
+    this.background();
+
     if (this.audioSource.paused) return;
 
     let energies = this.calculateEnergies();
     const diffEnergies = this.subtractAverageEnergy(energies, true);
-    energies = diffEnergies;
+    // energies = diffEnergies;
     const noteCandidates = this.calculateNoteCandidates(energies);
 
-    this.chordAnalyzer.update(diffEnergies);
+    this.tempoAnalyzer.update(this.audioMotion.getEnergy(), this.timer);
+
+    this.chordAnalyzer.update(energies, this.timer);
     const risingNotes = this.chordAnalyzer.output();
 
-    this.drawNotes(this.audioMotion.canvasCtx, this.energyFrame, noteCandidates, this.energyDerivFreq);
-    this.drawDebug(this.audioMotion.canvasCtx, this.chordAnalyzer.debug); // FIXME: delete
-    this.spinByEnergy();
+    this.durationAnalyzer.update(risingNotes, this.timer);
+
+    this.drawNotes(this.canvasCtx, this.energyFrame, noteCandidates, this.energyDerivFreq);
+    this.drawDebug(this.canvasCtx, this.durationAnalyzer.debug); // FIXME: delete
+    this.drawTimeDebug(this.canvasCtx, this.tempoAnalyzer.midBeatHistory, this.timer);
     this.timer++;
+  }
+
+  background() {
+    this.canvasCtx.fillStyle = "#000000";
+    this.canvasCtx.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
   calculateEnergies() {
@@ -117,7 +135,7 @@ export default class SongAnalyzer {
     return noteCandidates;
   }
 
-  // Just for fun, spin the audioMotion visualizer
+  // Just for fun, spin the audioMotion visualizer. Currently unused
   spinByEnergy() {
     this.audioMotion.spinSpeed = Math.pow(this.audioMotion.getEnergy() + 0.5, 2);
   }
@@ -154,14 +172,36 @@ export default class SongAnalyzer {
 
   // FIXME: Temp function for drawing debug info, delete when done
   drawDebug(ctx, debugEntries) {
-    // console.log(debugEntries);
-
     const xScale = 20;
     const yScale = 500;
     ctx.fillStyle = "#ff8866";
     for (let i = 0; i < debugEntries.length; i++) {
       const height = debugEntries[i] * yScale;
       ctx.fillRect(i * xScale, window.innerHeight / 2 - height, xScale - 1, height);
+    }
+  }
+
+  // FIXME: Temp function for debug info in the time axis, delete when done
+  drawTimeDebug(ctx, debugEntries, time) {
+    const timeWindow = 300;
+    const visibleEntries = debugEntries
+      .filter((e) => e.time > time - timeWindow)
+      .map((e) => ({ ...e, visibleTime: e.time - (time - timeWindow) }));
+
+    const xOffset = 100;
+    const xScale = 1.5;
+    const yScale = 250;
+    ctx.fillStyle = "#ffff88";
+    visibleEntries.forEach((e) => {
+      const height = e.value * yScale;
+      ctx.fillRect(e.visibleTime * xScale + xOffset, window.innerHeight / 4 - height, 2, height);
+    });
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "10px Comfortaa";
+    for (let i = (Math.floor((time - timeWindow) / 50) + 1) * 50; i < time; i += 50) {
+      const x = i - (time - timeWindow);
+      ctx.fillText(i, x * xScale + xOffset, window.innerHeight / 4 + 7);
     }
   }
 }

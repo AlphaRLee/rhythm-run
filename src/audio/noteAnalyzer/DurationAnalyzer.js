@@ -5,7 +5,11 @@ export default class DurationAnalyzer {
     this.trackedNotes = new Map();
     this.releasedNotes = []; // notes that have been just released. Cleared every update cycle
 
-    this.sustainThreshold = 0.08; // How much a note's energy can vary before it's no longer considered the same note
+    this.minEnergyThreshold = 0.2;
+    this.sustainThreshold = 0.13; // How much a note's energy can vary before it's no longer considered the same note
+
+    // FIXME: Delete
+    this.debug = [];
   }
 
   /**
@@ -14,16 +18,21 @@ export default class DurationAnalyzer {
    * @param {Array<number>} energies
    * @param {number} time
    */
-  update(notesData, energies, time) {
+  update(notesData, time) {
     this.releasedNotes = [];
 
-    this.notesData.forEach((noteData) => {
+    // Start tracking any new notes from notesData
+    notesData.forEach((noteData) => {
       if (!this.trackedNotes.has(noteData.freqIndex)) {
         this.trackedNotes.set(noteData.freqIndex, noteData);
       }
     });
 
     this.trackedNotes.forEach((noteData) => this.updateNote(noteData, time));
+
+    // FIXME: delete
+    this.debug = Array(99).fill(0); // FIXME: Delete
+    this.trackedNotes.forEach((noteData) => (this.debug[noteData.freqIndex] = noteData.history.last()));
   }
 
   /**
@@ -31,9 +40,12 @@ export default class DurationAnalyzer {
    * @param {NoteData} noteData
    */
   updateNote(noteData, time) {
+    const hasEnergy = noteData.history.last() >= this.minEnergyThreshold;
+    const withinRisingThreshold = Math.abs(noteData.history.lastDiff()) < this.sustainThreshold;
+
     // Test if note should be tracked
-    if (Math.abs(noteData.history.lastDiff()) > this.sustainThreshold) {
-      noteData.timeEnd = time;
+    if (!hasEnergy || !withinRisingThreshold) {
+      noteData.endTime = time;
       this.releasedNotes.push(noteData);
       this.trackedNotes.delete(noteData.freqIndex);
 

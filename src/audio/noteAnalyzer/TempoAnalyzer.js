@@ -2,52 +2,91 @@ import HistoryQueue from "../util/HistoryQueue";
 
 export class TempoAnalyzer {
   constructor() {
-    this.energyHistory = new HistoryQueue();
-    this.risingEdgeHistory = new HistoryQueue();
-    this.maxHistoryLength = 200;
+    this.avgEnergyHistory = new HistoryQueue({ maxLength: 108 });
+    this.avgRisingHistory = new HistoryQueue({ maxLength: 108 });
 
-    this.newPeakDetected = false;
-    this.peak = {
-      time: 0,
-      value: -Infinity,
-    };
-    this.prevPeak = null;
+    this.midBeatHistory = new HistoryQueue({ maxLength: 10 });
+    this.strongBeatHistory = new HistoryQueue({ maxLength: 10 });
+
+    this.midPeakRisingThreshold = 0.06;
+    this.strongPeakRisingThreshold = 0.08;
+
+    this.beatTimeCooldown = 3; // How many frames must pass before a beat is accepted
+
+    // Output - "frames per beat"
+    this.fallbackStrongTempo = 50;
+    this.fallbackMidTempo = 25;
+    this.strongTempo = 50;
+    this.midTempo = 25;
+
+    // FIXME: Debug
+    this.debug = 0;
   }
 
-  update(avgEnergy, timer) {
-    this.newPeakDetected = false;
+  update(averageEnergy, time) {
+    this.debug = 0; // FIXME: Delete
 
-    this.energyHistory.add(avgEnergy);
-    this.convolveTail(avgEnergy);
-    this.updatePeak(timer);
+    this.avgEnergyHistory.add(averageEnergy);
+    const lastDiff = this.avgEnergyHistory.lastDiff();
+    this.avgRisingHistory.add(lastDiff);
+
+    if (lastDiff > this.midPeakRisingThreshold) {
+      this.recordMidBeat(averageEnergy, lastDiff, time);
+    }
   }
 
-  /**
-   * Run an rising-edge-detecting convolution on the tail (latest) of the history
-   */
-  convolveTail(energy) {
-    const kernel = [1, 0, -1];
-    const reversedKernel = [-1, 0, 1]; // Reversed elements in kernel to simplify array indexing
-    let sum = 0;
-    for (let i = 0; i < kernel.length; i++) {
-      const signalIndex = this.energyHistory.length - i - 1;
-      const signalVal = signalIndex >= 0 ? this.energyHistory[signalIndex] : 0;
-      sum += signalVal * kernel[i];
+  recordMidBeat(averageEnergy, lastDiff, time) {
+    // Bail out if cooldown hasn't finished
+    if (this.midBeatHistory.length && time - this.midBeatHistory.last().time < this.beatTimeCooldown) return;
+
+    this.debug = averageEnergy; // FIXME: delete
+
+    if (lastDiff >= this.strongPeakRisingThreshold) {
+      this.recordStrongBeat(averageEnergy, time);
+      this.calculateTempo();
     }
 
-    this.risingEdgeHistory.add(sum);
+    this.recordBeat(this.midBeatHistory, averageEnergy, time, this.fallbackMidTempo);
+
+    // this.printDebug(time); // FIXME: delete
   }
 
-  /**
-   * Find if latest signal has peaked or not
-   */
-  updatePeak(timer) {
-    const index = this.risingEdgeHistory.history.length - 1;
-    if (this.risingEdgeHistory[index] <= 0 || this.risingEdgeHistory[index - 1]) return;
+  recordStrongBeat(averageEnergy, time) {
+    this.recordBeat(this.strongBeatHistory, averageEnergy, time, this.fallbackStrongTempo);
 
-    this.prevPeak = this.peak;
-    this.peak = { time: timer - 1, value: this.risingEdgeHistory[index - 1] };
-    this.newPeakDetected = true;
+    this.debug = 0.8; // FIXME: delete
+  }
+
+  recordBeat(beatHistory, averageEnergy, time, fallbackTempo) {
+    let duration = beatHistory.length ? time - beatHistory.last().time : fallbackTempo;
+
+    // Fallback to last beat duration if beat is significantly behind last beat
+    if (beatHistory.length && duration > 2 * beatHistory.last().duration) duration = beatHistory.last().duration;
+
+    beatHistory.add({ time, value: averageEnergy, duration });
+  }
+
+  printDebug(time) {
+    const timeWindow = 400;
+    const inWindow = (peakHistory) => peakHistory.filter((peak) => time - peak.time <= timeWindow);
+    const scores = [inWindow(this.midBeatHistory).length, inWindow(this.strongBeatHistory).length];
+    const ratio = scores[1] ? (scores[0] / scores[1]).toFixed(2) : scores[0] + "exceed";
+    console.log("!!! midPeak/strongPeak length in " + timeWindow, scores[0], scores[1], ratio);
+  }
+
+  calculateTempo() {
+    if (!this.strongBeatHistory.length) return;
+
+    this.strongTempoDurationSum = this.strongBeatHistory.reduce(
+      ({ sum, last }, peak) => ({
+        sum: peak.time - last + sum,
+        last: peak.time,
+      }),
+      { sum: 0, last: this.strongBeatHistory.length ? this.strongBeatHistory[0].time : 0 }
+    )?.sum;
+    this.strongTempo = this.strongTempoDurationSum / this.strongBeatHistory.length;
+
+    console.log("!!! strongTempo", this.strongTempo);
   }
 
   /*

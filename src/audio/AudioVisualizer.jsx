@@ -9,8 +9,8 @@ function AudioVisualizer(props) {
   const [songAnalyzer, setSongAnalyzer] = useState();
 
   // FIXME: Temp state variables for calibration --------------
-  const [risingThresholdIn, setRisingThresholdIn] = useState(0.1);
-  const [showCandidateNotes, setShowCandidateNotes] = useState(false);
+  const [input1, setInput1] = useState(0.1);
+  const [input2, setInput2] = useState(0.1);
   // ----------------------------------------------------------
 
   useEffect(() => {
@@ -25,26 +25,28 @@ function AudioVisualizer(props) {
 
   // FIXME: Delete - canvas with controls
   // TEMP - State updates for form controls
-  const onRisingInputChange = (event) => {
-    event.preventDefault();
-    setRisingThresholdIn(event.target.value);
+  const onInput1Change = (event) => {
+    // event.preventDefault();
+    setInput1(event.target.value);
   };
-  const onShowCandidateNotesChange = (event) => {
-    setShowCandidateNotes(event.target.checked);
+  const onInput2Change = (event) => {
+    setInput2(event.target.value);
   };
 
   // TEMP - Use external controls to calibrate songAnalyzer
   useEffect(() => {
     if (!audioRef.current || !songAnalyzer) return;
 
-    songAnalyzer.chordAnalyzer.minRisingThreshold = risingThresholdIn;
-    songAnalyzer.showCandidateNotes = showCandidateNotes;
-  }, [risingThresholdIn, audioRef, showCandidateNotes]);
+    songAnalyzer.durationAnalyzer.minEnergyThreshold = input1;
+    songAnalyzer.durationAnalyzer.sustainThreshold = input2;
+  }, [input1, input2, audioRef]);
 
   const tempDisplay = () => {
     return (
       <>
-        <div ref={audioCanvasRef} className="position-absolute w-100 h-100" />
+        <div className="position-absolute w-100 h-100">
+          <canvas ref={audioCanvasRef} width={window.innerWidth} height={window.innerHeight} />
+        </div>
         {/* <SpectrumAnalyzer audioRef={audioRef} audioMotion={songAnalyzer?.audioMotion} /> */}
         <div className="position-absolute">
           <div className="form-group row">
@@ -52,35 +54,16 @@ function AudioVisualizer(props) {
               Input 1
             </label>
             <div className="col-9">
-              <input
-                type="number"
-                className="form-control"
-                id="input1"
-                value={risingThresholdIn}
-                onChange={onRisingInputChange}
-              />
-              <input
-                type="range"
-                className="form-range"
-                id="customRange1"
-                value={risingThresholdIn}
-                min={0}
-                max={1}
-                onChange={onRisingInputChange}
-              />
+              <input type="number" className="form-control" id="input1" value={input1} onChange={onInput1Change} />
             </div>
           </div>
-          <div className="form-check">
-            <input
-              type="checkbox"
-              className="form-check-input"
-              id="show-yellow"
-              checked={showCandidateNotes}
-              onChange={onShowCandidateNotesChange}
-            />
-            <label htmlFor="show-yellow" className="form-check-label text-white">
-              Show yellow
+          <div className="form-group row">
+            <label htmlFor="input2" className="text-white col-3">
+              Input 2
             </label>
+            <div className="col-9">
+              <input type="number" className="form-control" id="input2" value={input2} onChange={onInput2Change} />
+            </div>
           </div>
         </div>
       </>

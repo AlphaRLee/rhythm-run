@@ -8,6 +8,10 @@ export default class HistoryQueue extends Array {
     this.maxLength = maxLength;
   }
 
+  last(i = 0) {
+    return this[this.length - 1 - i];
+  }
+
   /**
    * Add a new value in and drop any values beyond the max length
    * @param {*} value
