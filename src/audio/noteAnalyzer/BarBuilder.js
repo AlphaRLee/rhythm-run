@@ -50,7 +50,6 @@ export default class BarBuilder {
     } else if (duration > this.maxBarTime && this.midBeats.length) {
       endBeat = this.midBeats.last();
       endBeat.type = "strong"; // Forcefully promote the beat to strong to end bar
-      console.log("!!! forced endbeat", endBeat); // FIXME: dELETE
       return endBeat;
     }
 

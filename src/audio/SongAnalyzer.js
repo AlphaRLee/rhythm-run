@@ -67,7 +67,7 @@ export default class SongAnalyzer {
     this.drawDebug(this.canvasCtx, this.durationAnalyzer.debug); // FIXME: delete
     this.drawTimeDebug(
       this.canvasCtx,
-      this.tempoAnalyzer.strongBeatHistory.map((b) => ({ value: b.energy, time: b.endTime })),
+      this.tempoAnalyzer.midBeatHistory.map((b) => ({ value: b.energy, time: b.endTime })),
       this.timer
     );
     this.timer++;
@@ -155,7 +155,7 @@ export default class SongAnalyzer {
     }
 
     ctx.fillStyle = "#ffffff";
-    for (let i = 0; i <= 1; i += 0.1) {
+    for (let i = 0; i <= 0.5; i += 0.1) {
       ctx.fillRect(xOffset - 5, window.innerHeight / 4 - i * yScale, 5, 2);
     }
   }
