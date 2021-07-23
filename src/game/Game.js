@@ -11,12 +11,7 @@ class Game {
 
     this.gravity = 1;
 
-    this.platforms = this.createPlatforms([
-      { x: 50, y: 400, width: 200, height: 50, createdTime: 0 },
-      // { x: 350, y: 500, width: 200, height: 50, createdTime: 0 },
-      // { x: 500, y: 600, width: 200, height: 50, createdTime: 0 },
-      // { x: 700, y: 400, width: 200, height: 50, createdTime: 0 },
-    ]);
+    this.platforms = this.createPlatforms([{ x: 50, y: 400, width: 200, height: 50, createdTime: 0 }]);
     this.player = new Player({ game: this, x: 100, y: 200 });
     this.playerCameraPos = { x: 250, y: 400 }; // Fix the player at this position visually
 

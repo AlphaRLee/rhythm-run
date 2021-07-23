@@ -7,10 +7,17 @@ import { frequencies, harmonicIndices, frequencyToNote } from "./util/frequencyU
 
 export default class SongAnalyzer {
   constructor(canvas, audioSource, sendOutput) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+    const aduioSourceNode = audioCtx.createMediaElementSource(audioSource);
+    const delayNode = audioCtx.createDelay(5);
+    delayNode.delayTime.value = 1.5;
+
     this.audioSource = audioSource;
     this.audioMotion = new AudioMotionAnalyzer(null, {
-      source: audioSource,
+      source: aduioSourceNode,
       useCanvas: false,
+      connectSpeakers: false,
       // width: window.innerWidth,
       // height: window.innerHeight,
       // mode: 2,
@@ -18,6 +25,9 @@ export default class SongAnalyzer {
       // spinSpeed: 0.2,
       onCanvasDraw: this.update.bind(this), // Bind this explicitly to SongAnalyzer
     });
+
+    this.audioMotion.connectOutput(delayNode);
+    delayNode.connect(audioCtx.destination);
 
     this.canvas = canvas;
     this.canvasCtx = this.canvas.getContext("2d");

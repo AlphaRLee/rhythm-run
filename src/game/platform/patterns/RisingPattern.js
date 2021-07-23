@@ -36,7 +36,7 @@ export default class RisingPattern extends PlatformPattern {
     const minNoteLength = 50;
 
     const xOffset = -15;
-    const yIncrease = 60;
+    const yIncrease = -80;
     const baseY = notesData[0].freqIndex;
     const durationToWidth = 5;
 

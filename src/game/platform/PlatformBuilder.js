@@ -2,12 +2,18 @@ import BarData from "../../audio/util/BarData";
 import FallingPattern from "./patterns/FallingPattern";
 import RestPattern from "./patterns/RestPattern";
 import RisingPattern from "./patterns/RisingPattern";
+import BasicPattern from "./patterns/BasicPattern";
 
 export default class PlatformBuilder {
   constructor(game) {
     this.game = game;
     this.restPattern = new RestPattern(game);
-    this.platformPatterns = [this.restPattern, new RisingPattern(game), new FallingPattern(game)];
+    this.platformPatterns = [
+      this.restPattern,
+      new RisingPattern(game),
+      new FallingPattern(game),
+      new BasicPattern(game),
+    ];
   }
 
   /**
