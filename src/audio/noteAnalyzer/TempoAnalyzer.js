@@ -38,7 +38,7 @@ export default class TempoAnalyzer {
 
   recordMidBeat(averageEnergy, lastDiff, time) {
     // Bail out if cooldown hasn't finished
-    if (this.midBeatHistory.length && time - this.midBeatHistory.last().time < this.beatTimeCooldown) return;
+    if (this.midBeatHistory.length && time - this.midBeatHistory.last().endTime < this.beatTimeCooldown) return;
 
     if (lastDiff >= this.strongPeakRisingThreshold) {
       this.recordStrongBeat(averageEnergy, time);
