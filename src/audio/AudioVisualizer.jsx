@@ -5,7 +5,7 @@ function AudioVisualizer(props) {
   const { audioRef, songAnalyzerRef, setBarData } = props;
 
   const audioCanvasRef = useRef(null);
-  const [songAnalyzer, setSongAnalyzer] = useState();
+  const songAnalyzer = songAnalyzerRef.current;
 
   // FIXME: Temp state variables for calibration --------------
   const [input1, setInput1] = useState(0.1);
@@ -17,7 +17,7 @@ function AudioVisualizer(props) {
       return;
     }
 
-    setSongAnalyzer(new SongAnalyzer(audioCanvasRef.current, audioRef.current, setBarData));
+    songAnalyzerRef.current = new SongAnalyzer(audioCanvasRef.current, audioRef.current, setBarData);
   }, [audioRef, audioCanvasRef]);
 
   // return <div ref={audioCanvasRef} className="position-absolute w-100 h-100" />; // FIXME: Restore - empty canvas
@@ -42,29 +42,9 @@ function AudioVisualizer(props) {
 
   const tempDisplay = () => {
     return (
-      <>
-        <div className="position-absolute w-100 h-100">
-          <canvas ref={audioCanvasRef} width={window.innerWidth} height={window.innerHeight} />
-        </div>
-        <div className="position-absolute">
-          <div className="form-group row">
-            <label htmlFor="input1" className="text-white col-3">
-              Input 1
-            </label>
-            <div className="col-9">
-              <input type="number" className="form-control" id="input1" value={input1} onChange={onInput1Change} />
-            </div>
-          </div>
-          <div className="form-group row">
-            <label htmlFor="input2" className="text-white col-3">
-              Input 2
-            </label>
-            <div className="col-9">
-              <input type="number" className="form-control" id="input2" value={input2} onChange={onInput2Change} />
-            </div>
-          </div>
-        </div>
-      </>
+      <div className="position-absolute w-100 h-100">
+        <canvas ref={audioCanvasRef} width={window.innerWidth} height={window.innerHeight} />
+      </div>
     );
   };
 

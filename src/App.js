@@ -5,12 +5,14 @@ import Game from "./game/Game";
 import SongAnalyzer from "./audio/SongAnalyzer";
 import LandingMenu from "./menu/LandingMenu";
 import AudioVisualizer from "./audio/AudioVisualizer";
+import Calibrator from "./Calibrator";
 
 function App() {
   const [isMenuOpen, setMenuOpen] = useState(true);
   const audioRef = useRef(null);
   const songAnalyzerRef = useRef(null);
   const barDataRef = useRef(null);
+  const [showGame, setShowGame] = useState(true);
 
   const gameRef = useRef(new Game({ width: window.innerWidth, height: window.innerHeight }));
   const game = gameRef.current;
@@ -96,9 +98,10 @@ function App() {
         songAnalyzerRef={songAnalyzerRef}
         setBarData={(barData) => (barDataRef.current = barData)}
       />
-      {/* FIXME: Restore canvas */}
-      <Canvas draw={draw} tabIndex={0} onKeyDown={onKeyDown} onKeyUp={onKeyUp} className="absolute-canvas" />
-
+      {showGame && (
+        <Canvas draw={draw} tabIndex={0} onKeyDown={onKeyDown} onKeyUp={onKeyUp} className="absolute-canvas" />
+      )}
+      <Calibrator audioRef={audioRef} songAnalyzerRef={songAnalyzerRef} showGame={showGame} setShowGame={setShowGame} />
       <div className="position-absolute" style={{ right: 10, top: 10 }}>
         <audio ref={audioRef} onEnded={onAudioEnd} controls />
       </div>
