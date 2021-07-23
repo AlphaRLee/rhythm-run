@@ -3,26 +3,24 @@ import ChordAnalyzer from "./noteAnalyzer/ChordAnalyzer";
 import DurationAnalyzer from "./noteAnalyzer/DurationAnalyzer";
 import TempoAnalyzer from "./noteAnalyzer/TempoAnalyzer";
 import BarBuilder from "./noteAnalyzer/BarBuilder";
+import HistoryQueue from "./util/HistoryQueue";
 import { frequencies, harmonicIndices, frequencyToNote } from "./util/frequencyUtils";
 
 export default class SongAnalyzer {
   constructor(canvas, audioSource, sendOutput) {
+    this.delayTime = 1.5;
+
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     const audioCtx = new AudioContext();
     const aduioSourceNode = audioCtx.createMediaElementSource(audioSource);
     const delayNode = audioCtx.createDelay(5);
-    delayNode.delayTime.value = 1.5;
+    delayNode.delayTime.value = this.delayTime;
 
     this.audioSource = audioSource;
     this.audioMotion = new AudioMotionAnalyzer(null, {
       source: aduioSourceNode,
       useCanvas: false,
       connectSpeakers: false,
-      // width: window.innerWidth,
-      // height: window.innerHeight,
-      // mode: 2,
-      // radial: true,
-      // spinSpeed: 0.2,
       onCanvasDraw: this.update.bind(this), // Bind this explicitly to SongAnalyzer
     });
 
@@ -44,16 +42,11 @@ export default class SongAnalyzer {
     this.sendOutput = sendOutput;
     this.barData = null; // Last bar
 
-    // FIXME: utility tools, delete --------------------
-    this.energyThreshold = 50;
-    this.showCandidateNotes = false;
-    this.risingThreshold = 100;
-    this.fallingThreshold = 40;
-    this.lowFreqIndex = 27; // C3 - Notes lower than this will not apply penalization on its harmonics when they are detected
-    this.suppressFactor = 0.9; // How much to suppress a harmonic, relative to the harmonic before it
+    // Drawing output
+    this.delayDrawBuffer = new HistoryQueue({ maxLength: 200 });
 
-    this.energyFrame = [];
-    this.energyDerivFreq = [];
+    // FIXME: utility tools, delete --------------------
+    this.showCandidateNotes = false;
     // -------------------------------------------------
   }
 
@@ -63,7 +56,6 @@ export default class SongAnalyzer {
     if (this.audioSource.paused) return;
 
     let energies = this.calculateEnergies();
-    const diffEnergies = this.subtractAverageEnergy(energies, true);
 
     this.tempoAnalyzer.update(this.audioMotion.getEnergy(), this.timer);
     const beatsData = this.tempoAnalyzer.outputBeats();
@@ -79,13 +71,7 @@ export default class SongAnalyzer {
       this.sendOutput(this.barData);
     }
 
-    this.drawNotes(this.canvasCtx, energies);
-    this.drawDebug(this.canvasCtx, this.durationAnalyzer.debug); // FIXME: delete
-    this.drawTimeDebug(
-      this.canvasCtx,
-      this.tempoAnalyzer.midBeatHistory.map((b) => ({ value: b.energy, time: b.endTime })),
-      this.timer
-    );
+    this.draw(energies);
     this.timer++;
   }
 
@@ -104,6 +90,24 @@ export default class SongAnalyzer {
       const diff = n - averageEnergy;
       return floorZero && diff < 0 ? 0 : diff;
     });
+  }
+
+  draw(newEnergies) {
+    this.delayDrawBuffer.add({
+      energies: newEnergies,
+      debug: this.durationAnalyzer.debug,
+      timeDebug: this.tempoAnalyzer.midBeatHistory.map((b) => ({ value: b.energy, time: b.endTime })),
+    });
+
+    // Approx 60 calls per second
+    const secondsToFrames = 1 * 60;
+    if (this.delayDrawBuffer.length < this.delayTime * secondsToFrames + 1) return;
+
+    const { energies, debug, timeDebug } = this.delayDrawBuffer.last(this.delayTime * secondsToFrames);
+
+    this.drawNotes(this.canvasCtx, energies);
+    this.drawDebug(this.canvasCtx, debug); // FIXME: delete
+    this.drawTimeDebug(this.canvasCtx, timeDebug, this.timer);
   }
 
   // Just for fun, spin the audioMotion visualizer. Currently unused

@@ -1,9 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import SpectrumAnalyzer from "./SpectrumAnalyzer"; // TODO: Delete, used for temp analysis only
 import SongAnalyzer from "./SongAnalyzer";
 
 function AudioVisualizer(props) {
-  const { audioRef, setBarData } = props;
+  const { audioRef, songAnalyzerRef, setBarData } = props;
 
   const audioCanvasRef = useRef(null);
   const [songAnalyzer, setSongAnalyzer] = useState();
@@ -47,7 +46,6 @@ function AudioVisualizer(props) {
         <div className="position-absolute w-100 h-100">
           <canvas ref={audioCanvasRef} width={window.innerWidth} height={window.innerHeight} />
         </div>
-        {/* <SpectrumAnalyzer audioRef={audioRef} audioMotion={songAnalyzer?.audioMotion} /> */}
         <div className="position-absolute">
           <div className="form-group row">
             <label htmlFor="input1" className="text-white col-3">
