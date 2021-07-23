@@ -6,7 +6,7 @@ import BarBuilder from "./noteAnalyzer/BarBuilder";
 import { frequencies, harmonicIndices, frequencyToNote } from "./util/frequencyUtils";
 
 export default class SongAnalyzer {
-  constructor(canvas, audioSource) {
+  constructor(canvas, audioSource, sendOutput) {
     this.audioSource = audioSource;
     this.audioMotion = new AudioMotionAnalyzer(null, {
       source: audioSource,
@@ -29,6 +29,10 @@ export default class SongAnalyzer {
     this.chordAnalyzer = new ChordAnalyzer();
     this.durationAnalyzer = new DurationAnalyzer();
     this.barBuilder = new BarBuilder();
+
+    // Output
+    this.sendOutput = sendOutput;
+    this.barData = null; // Last bar
 
     // FIXME: utility tools, delete --------------------
     this.energyThreshold = 50;
@@ -60,8 +64,10 @@ export default class SongAnalyzer {
     this.durationAnalyzer.update(risingNotes, this.timer);
 
     this.barBuilder.update(risingNotes, beatsData, this.timer);
-    const barData = this.barBuilder.outputBar();
-    if (barData) console.log("!!! time barData dur", this.timer, barData, barData.duration);
+    this.barData = this.barBuilder.outputBar(); // Output the bar
+    if (this.barData) {
+      this.sendOutput(this.barData);
+    }
 
     this.drawNotes(this.canvasCtx, energies);
     this.drawDebug(this.canvasCtx, this.durationAnalyzer.debug); // FIXME: delete

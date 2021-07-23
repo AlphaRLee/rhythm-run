@@ -1,6 +1,7 @@
 import Platform from "../Platform";
+import PlatformPattern from "./PlatformPattern";
 
-export default class RestPattern {
+export default class RestPattern extends PlatformPattern {
   constructor(game) {
     super(game);
     this.name = "RestPattern";
@@ -10,12 +11,13 @@ export default class RestPattern {
    * Tests that there is no melody
    * @param {Array} notesData
    */
-  fitScore(notesData) {
+  fitScore(barData) {
+    const notesData = barData.beatNotes;
     let score = 0;
-    const maxEnergyThreshold = 0.3;
+    const maxEnergyThreshold = 0.02;
 
     notesData.forEach((noteData) => {
-      if (noteData.energy <= maxEnergyThreshold) {
+      if (noteData.history.last() <= maxEnergyThreshold) {
         score++;
       }
     });
@@ -28,19 +30,20 @@ export default class RestPattern {
    * @param {Array} notesData
    * @returns {Array<Platform>} One long platform slightly below the player's position
    */
-  build(notesData) {
-    const noteHeight = 10;
-    const minNoteLength = 50;
-    const baseY = 0;
+  build(barData) {
+    const noteHeight = 30;
+    const minNoteLength = 100;
+    const xOffset = -15;
+    const baseY = 400;
 
     return [
       new Platform({
         game: this.game,
-        x: noteData.time,
+        x: barData.startTime * this.game.timeToX + xOffset,
         y: baseY,
-        width: Max(noteData.duration, minNoteLength),
+        width: Math.max(barData.duration * this.game.timeToX, minNoteLength),
         height: noteHeight,
-        createdTime: noteData.time,
+        createdTime: barData.startTime,
       }),
     ];
   }

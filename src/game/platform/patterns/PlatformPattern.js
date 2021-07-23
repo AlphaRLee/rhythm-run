@@ -7,7 +7,7 @@ export default class PlatformPattern {
    * A score between 0-1 indicating how well the notesData fits the pattern
    * @param {*} notesData
    */
-  fitScore(notesData) {}
+  fitScore(barData) {}
 
-  build(notesData) {}
+  build(barData) {}
 }

@@ -2,10 +2,10 @@ import BarData from "../../../audio/util/BarData";
 import Platform from "../Platform";
 import PlatformPattern from "./PlatformPattern";
 
-export default class RisingPattern extends PlatformPattern {
+export default class HorizontalWavePattern extends PlatformPattern {
   constructor(game) {
     super(game);
-    this.name = "RisingPattern";
+    this.name = "HorizontalWavePattern";
   }
 
   /**

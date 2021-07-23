@@ -10,7 +10,7 @@ export default class TempoAnalyzer {
     this.strongBeatHistory = new HistoryQueue({ maxLength: 30 });
 
     this.midPeakRisingThreshold = 0.03; // Rising minimum
-    this.strongPeakEnergyThreshold = 0.18; // Energy minimum
+    this.strongPeakEnergyThreshold = 0.19; // Energy minimum
 
     this.beatTimeCooldown = 3; // How many frames must pass before a beat is accepted
 

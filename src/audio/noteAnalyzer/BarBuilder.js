@@ -27,7 +27,7 @@ export default class BarBuilder {
 
     const endBeat = this.awaitEndBeat(beatsData, time);
     if (endBeat) {
-      this.buildBar(endBeat, time);
+      this.buildBar(endBeat);
     }
 
     // Add the note if it does not exist yet
@@ -56,7 +56,12 @@ export default class BarBuilder {
     return null;
   }
 
-  buildBar(endBeat, time) {
+  buildBar(endBeat) {
+    // Clip any notes that extend to next bar with endTime
+    this.notesInBar.forEach((note) => {
+      if (!note.endTime) note.endTime = endBeat.endTime;
+    });
+
     this.releasedBar = new BarData({
       notesData: [...this.notesInBar],
       startBeat: this.startBeat,

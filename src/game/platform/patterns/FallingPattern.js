@@ -2,10 +2,10 @@ import BarData from "../../../audio/util/BarData";
 import Platform from "../Platform";
 import PlatformPattern from "./PlatformPattern";
 
-export default class RisingPattern extends PlatformPattern {
+export default class FallingPattern extends PlatformPattern {
   constructor(game) {
     super(game);
-    this.name = "RisingPattern";
+    this.name = "FallingPattern";
   }
 
   /**
@@ -18,7 +18,7 @@ export default class RisingPattern extends PlatformPattern {
     let lastFreqIndex = 0;
 
     notesData.forEach((noteData) => {
-      if (noteData.freqIndex > lastFreqIndex) {
+      if (noteData.freqIndex < lastFreqIndex) {
         score++;
       } else {
         score--;
@@ -36,7 +36,7 @@ export default class RisingPattern extends PlatformPattern {
     const minNoteLength = 50;
 
     const xOffset = -15;
-    const yIncrease = 60;
+    const yIncrease = -60;
     const baseY = notesData[0].freqIndex;
     const durationToWidth = 5;
 

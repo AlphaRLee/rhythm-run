@@ -1,5 +1,6 @@
 import Player from "./Player";
 import Platform from "./platform/Platform";
+import PlatformBuilder from "./platform/PlatformBuilder";
 
 class Game {
   constructor({ width, height }) {
@@ -11,25 +12,29 @@ class Game {
     this.gravity = 1;
 
     this.platforms = this.createPlatforms([
-      { x: 50, y: 600, width: 200, height: 50, createdTime: 0 },
-      { x: 350, y: 500, width: 200, height: 50, createdTime: 0 },
-      { x: 500, y: 600, width: 200, height: 50, createdTime: 0 },
-      { x: 700, y: 400, width: 200, height: 50, createdTime: 0 },
+      { x: 50, y: 400, width: 200, height: 50, createdTime: 0 },
+      // { x: 350, y: 500, width: 200, height: 50, createdTime: 0 },
+      // { x: 500, y: 600, width: 200, height: 50, createdTime: 0 },
+      // { x: 700, y: 400, width: 200, height: 50, createdTime: 0 },
     ]);
     this.player = new Player({ game: this, x: 100, y: 200 });
     this.playerCameraPos = { x: 250, y: 400 }; // Fix the player at this position visually
 
+    this.timeToX = 10;
+
     this.timer = 0;
+    this.platformBuilder = new PlatformBuilder(this);
   }
 
-  update(frameCount, keysHeld, notes) {
+  update(frameCount, keysHeld, barData) {
     if (!this.isRunning) return;
 
-    // this.handleNotes(notes);
+    this.handleBarData(barData);
 
     this.player.update(frameCount);
     this.handleKeysHeld(keysHeld);
 
+    this.removeOldPlatforms();
     this.timer++;
   }
 
@@ -76,28 +81,14 @@ class Game {
 
   createPlatforms = (platformData) => platformData.map((data) => new Platform({ game: this, ...data }));
 
-  handleNotes(notes) {
-    notes = notes.filter((noteIndex) => noteIndex !== 0);
-    if (!notes.length) {
-      return;
-    }
-
-    const xOffset = this.timer * 8;
-    const yScale = -100;
-    const platformData = notes.map((note) => ({
-      x: xOffset,
-      y: yScale * note + 300,
-      width: 50,
-      height: 20,
-      createdTime: this.timer,
-    }));
-    this.platforms.push(...this.createPlatforms(platformData));
-
-    this.removeOldPlatforms();
+  handleBarData(barData) {
+    if (this.barData === barData) return; // Await explicit update before building
+    this.barData = barData;
+    if (this.barData) this.platformBuilder.onReadBar(this.barData);
   }
 
   removeOldPlatforms() {
-    const duration = 100;
+    const duration = 800;
     const expiryTime = this.timer - duration;
     this.platforms = this.platforms.filter((platform) => platform.createdTime >= expiryTime);
   }

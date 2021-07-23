@@ -13,7 +13,7 @@ export default class BarData {
   }
 
   get startTime() {
-    return this.startBeat.endTime;
+    return this?.startBeat?.endTime || 0;
   }
 
   get endTime() {

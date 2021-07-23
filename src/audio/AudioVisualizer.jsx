@@ -3,7 +3,7 @@ import SpectrumAnalyzer from "./SpectrumAnalyzer"; // TODO: Delete, used for tem
 import SongAnalyzer from "./SongAnalyzer";
 
 function AudioVisualizer(props) {
-  const { audioRef, setNotes } = props;
+  const { audioRef, setBarData } = props;
 
   const audioCanvasRef = useRef(null);
   const [songAnalyzer, setSongAnalyzer] = useState();
@@ -18,7 +18,7 @@ function AudioVisualizer(props) {
       return;
     }
 
-    setSongAnalyzer(new SongAnalyzer(audioCanvasRef.current, audioRef.current));
+    setSongAnalyzer(new SongAnalyzer(audioCanvasRef.current, audioRef.current, setBarData));
   }, [audioRef, audioCanvasRef]);
 
   // return <div ref={audioCanvasRef} className="position-absolute w-100 h-100" />; // FIXME: Restore - empty canvas
@@ -37,8 +37,8 @@ function AudioVisualizer(props) {
   useEffect(() => {
     if (!audioRef.current || !songAnalyzer) return;
 
-    songAnalyzer.durationAnalyzer.minEnergyThreshold = input1;
-    songAnalyzer.durationAnalyzer.sustainThreshold = input2;
+    // songAnalyzer.durationAnalyzer.minEnergyThreshold = input1;
+    // songAnalyzer.durationAnalyzer.sustainThreshold = input2;
   }, [input1, input2, audioRef]);
 
   const tempDisplay = () => {

@@ -7,7 +7,7 @@ class Player extends Sprite {
 
     this.userSpeed = { x: 0, y: 0 };
     this.envSpeed = { x: 0, y: 0 };
-    this.walkSpeed = 10;
+    this.walkSpeed = 10; // FIXME: 10
     this.jumpSpeed = -20;
   }
 

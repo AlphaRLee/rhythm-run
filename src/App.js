@@ -9,7 +9,7 @@ import AudioVisualizer from "./audio/AudioVisualizer";
 function App() {
   const [isMenuOpen, setMenuOpen] = useState(true);
   const audioRef = useRef(null);
-  const notesRef = useRef([]);
+  const barDataRef = useRef(null);
 
   const gameRef = useRef(new Game({ width: window.innerWidth, height: window.innerHeight }));
   const game = gameRef.current;
@@ -64,7 +64,7 @@ function App() {
 
   const draw = (ctx, frameCount) => {
     const { width, height } = updateScreenSize(ctx);
-    game.update(frameCount, keysHeld, notesRef.current);
+    game.update(frameCount, keysHeld, barDataRef.current);
     game.draw(ctx, frameCount);
   };
 
@@ -90,9 +90,9 @@ function App() {
 
   return (
     <div>
-      <AudioVisualizer audioRef={audioRef} setNotes={(notes) => (notesRef.current = notes)} />
+      <AudioVisualizer audioRef={audioRef} setBarData={(barData) => (barDataRef.current = barData)} />
       {/* FIXME: Restore canvas */}
-      {/* <Canvas draw={draw} tabIndex={0} onKeyDown={onKeyDown} onKeyUp={onKeyUp} className="absolute-canvas" /> */}
+      <Canvas draw={draw} tabIndex={0} onKeyDown={onKeyDown} onKeyUp={onKeyUp} className="absolute-canvas" />
 
       <div className="position-absolute" style={{ right: 10, top: 10 }}>
         <audio ref={audioRef} onEnded={onAudioEnd} controls />

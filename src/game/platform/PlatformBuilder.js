@@ -1,19 +1,22 @@
+import BarData from "../../audio/util/BarData";
+import FallingPattern from "./patterns/FallingPattern";
 import RestPattern from "./patterns/RestPattern";
 import RisingPattern from "./patterns/RisingPattern";
 
 export default class PlatformBuilder {
   constructor(game) {
     this.game = game;
-    this.platformPatterns = [new RestPattern(game), new RisingPattern(game)];
+    this.restPattern = new RestPattern(game);
+    this.platformPatterns = [this.restPattern, new RisingPattern(game), new FallingPattern(game)];
   }
 
   /**
    * When a "bar" of music is read, build a platform pattern
-   * @param {Array} notesData
+   * @param {BarData} barData
    */
-  onReadBar(notesData) {
-    const pattern = this.selectPattern(notesData);
-    pattern.build(notesData);
+  onReadBar(barData) {
+    const pattern = this.selectPattern(barData);
+    this.game.platforms.push(...pattern.build(barData));
   }
 
   /**
@@ -24,8 +27,13 @@ export default class PlatformBuilder {
   selectPattern(notesData) {
     const patternScores = this.platformPatterns.map((pattern) => ({ pattern, score: pattern.fitScore(notesData) }));
     // Filter by a minimum threshold
-    const minScoreThreshold = 0.5;
+    const minScoreThreshold = 0.2;
     let filteredPatternScores = patternScores.filter((patternData) => patternData.score >= minScoreThreshold);
+
+    if (!filteredPatternScores.length) {
+      return this.restPattern;
+    }
+
     // Sort by descending scores
     filteredPatternScores.sort((patternData1, patternData2) => patternData1.score - patternData2.score);
 
