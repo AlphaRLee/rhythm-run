@@ -1,6 +1,7 @@
+import BeatData from "../util/BeatData";
 import HistoryQueue from "../util/HistoryQueue";
 
-export class TempoAnalyzer {
+export default class TempoAnalyzer {
   constructor() {
     this.avgEnergyHistory = new HistoryQueue({ maxLength: 108 });
     this.avgRisingHistory = new HistoryQueue({ maxLength: 108 });
@@ -18,13 +19,13 @@ export class TempoAnalyzer {
     this.fallbackMidTempo = 25;
     this.strongTempo = 50;
     this.midTempo = 25;
-
-    // FIXME: Debug
-    this.debug = 0;
+    this.strongBeat = false;
+    this.midBeat = false;
   }
 
   update(averageEnergy, time) {
-    this.debug = 0; // FIXME: Delete
+    this.strongBeat = false;
+    this.midBeat = false;
 
     this.avgEnergyHistory.add(averageEnergy);
     const lastDiff = this.avgEnergyHistory.lastDiff();
@@ -39,51 +40,36 @@ export class TempoAnalyzer {
     // Bail out if cooldown hasn't finished
     if (this.midBeatHistory.length && time - this.midBeatHistory.last().time < this.beatTimeCooldown) return;
 
-    this.debug = averageEnergy; // FIXME: delete
-
     if (lastDiff >= this.strongPeakRisingThreshold) {
       this.recordStrongBeat(averageEnergy, time);
       this.calculateTempo();
     }
 
-    this.recordBeat(this.midBeatHistory, averageEnergy, time, this.fallbackMidTempo);
-
-    // this.printDebug(time); // FIXME: delete
+    this.recordBeat(this.midBeatHistory, averageEnergy, time, this.fallbackMidTempo, "mid");
+    this.midBeat = true;
   }
 
   recordStrongBeat(averageEnergy, time) {
-    this.recordBeat(this.strongBeatHistory, averageEnergy, time, this.fallbackStrongTempo);
-
-    this.debug = 0.8; // FIXME: delete
+    this.recordBeat(this.strongBeatHistory, averageEnergy, time, this.fallbackStrongTempo, "strong");
+    this.strongBeat = true;
   }
 
-  recordBeat(beatHistory, averageEnergy, time, fallbackTempo) {
-    let duration = beatHistory.length ? time - beatHistory.last().time : fallbackTempo;
+  recordBeat(beatHistory, averageEnergy, time, fallbackTempo, type) {
+    let duration = beatHistory.length ? time - beatHistory.last().endTime : fallbackTempo;
+
+    console.log("!!! duration", duration);
 
     // Fallback to last beat duration if beat is significantly behind last beat
     if (beatHistory.length && duration > 2 * beatHistory.last().duration) duration = beatHistory.last().duration;
 
-    beatHistory.add({ time, value: averageEnergy, duration });
-  }
-
-  printDebug(time) {
-    const timeWindow = 400;
-    const inWindow = (peakHistory) => peakHistory.filter((peak) => time - peak.time <= timeWindow);
-    const scores = [inWindow(this.midBeatHistory).length, inWindow(this.strongBeatHistory).length];
-    const ratio = scores[1] ? (scores[0] / scores[1]).toFixed(2) : scores[0] + "exceed";
-    console.log("!!! midPeak/strongPeak length in " + timeWindow, scores[0], scores[1], ratio);
+    beatHistory.add(new BeatData({ energy: averageEnergy, startTime: time - duration, endTime: time, type }));
   }
 
   calculateTempo() {
     if (!this.strongBeatHistory.length) return;
 
-    this.strongTempoDurationSum = this.strongBeatHistory.reduce(
-      ({ sum, last }, peak) => ({
-        sum: peak.time - last + sum,
-        last: peak.time,
-      }),
-      { sum: 0, last: this.strongBeatHistory.length ? this.strongBeatHistory[0].time : 0 }
-    )?.sum;
+    console.log("!!! strongBeatHisto.last()", this.strongBeatHistory.last(), this.strongBeatHistory.last().duration);
+    this.strongTempoDurationSum = this.strongBeatHistory.reduce((sum, peak) => sum + peak.duration, 0);
     this.strongTempo = this.strongTempoDurationSum / this.strongBeatHistory.length;
 
     console.log("!!! strongTempo", this.strongTempo);

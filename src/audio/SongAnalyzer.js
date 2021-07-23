@@ -1,7 +1,8 @@
 import AudioMotionAnalyzer from "audiomotion-analyzer";
 import ChordAnalyzer from "./noteAnalyzer/ChordAnalyzer";
 import DurationAnalyzer from "./noteAnalyzer/DurationAnalyzer";
-import { TempoAnalyzer } from "./noteAnalyzer/TempoAnalyzer";
+import TempoAnalyzer from "./noteAnalyzer/TempoAnalyzer";
+import BarBuilder from "./noteAnalyzer/BarBuilder";
 import { frequencies, harmonicIndices, frequencyToNote } from "./util/frequencyUtils";
 
 export default class SongAnalyzer {
@@ -27,6 +28,7 @@ export default class SongAnalyzer {
     this.tempoAnalyzer = new TempoAnalyzer();
     this.chordAnalyzer = new ChordAnalyzer();
     this.durationAnalyzer = new DurationAnalyzer();
+    this.barBuilder = new BarBuilder();
 
     // FIXME: utility tools, delete --------------------
     this.energyThreshold = 50;
@@ -60,7 +62,11 @@ export default class SongAnalyzer {
 
     this.drawNotes(this.canvasCtx, this.energyFrame, noteCandidates, this.energyDerivFreq);
     this.drawDebug(this.canvasCtx, this.durationAnalyzer.debug); // FIXME: delete
-    this.drawTimeDebug(this.canvasCtx, this.tempoAnalyzer.midBeatHistory, this.timer);
+    this.drawTimeDebug(
+      this.canvasCtx,
+      this.tempoAnalyzer.midBeatHistory.map((b) => ({ value: b.energy, time: b.time })),
+      this.timer
+    );
     this.timer++;
   }
 
