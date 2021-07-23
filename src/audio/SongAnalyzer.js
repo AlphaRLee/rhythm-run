@@ -50,21 +50,24 @@ export default class SongAnalyzer {
 
     let energies = this.calculateEnergies();
     const diffEnergies = this.subtractAverageEnergy(energies, true);
-    // energies = diffEnergies;
-    const noteCandidates = this.calculateNoteCandidates(energies);
 
     this.tempoAnalyzer.update(this.audioMotion.getEnergy(), this.timer);
+    const beatsData = this.tempoAnalyzer.outputBeats();
 
     this.chordAnalyzer.update(energies, this.timer);
     const risingNotes = this.chordAnalyzer.output();
 
     this.durationAnalyzer.update(risingNotes, this.timer);
 
-    this.drawNotes(this.canvasCtx, this.energyFrame, noteCandidates, this.energyDerivFreq);
+    this.barBuilder.update(risingNotes, beatsData, this.timer);
+    const barData = this.barBuilder.outputBar();
+    if (barData) console.log("!!! time barData dur", this.timer, barData, barData.duration);
+
+    this.drawNotes(this.canvasCtx, energies);
     this.drawDebug(this.canvasCtx, this.durationAnalyzer.debug); // FIXME: delete
     this.drawTimeDebug(
       this.canvasCtx,
-      this.tempoAnalyzer.midBeatHistory.map((b) => ({ value: b.energy, time: b.endTime })),
+      this.tempoAnalyzer.strongBeatHistory.map((b) => ({ value: b.energy, time: b.endTime })),
       this.timer
     );
     this.timer++;
@@ -87,80 +90,21 @@ export default class SongAnalyzer {
     });
   }
 
-  // TODO: Review if this is useful anymore, else just delete
-  calculateNoteCandidates(energies) {
-    this.energyFrame = energies.map((n) => n * 500);
-    let { energyFrame, energyDerivFreq } = this;
-
-    let suppressedEnergies = Array(frequencies.length).fill(0);
-    energyDerivFreq = []; // d(energies)/df
-    for (let i = 0; i < energyFrame.length - 1; i++) {
-      energyDerivFreq.push(energyFrame[i + 1] - energyFrame[i]); // Hack: Ignoring fact that derivative should divide by df (but df is variable here!)
-    }
-
-    let noteCandidates = [];
-    let localMaxFreqIndex = 0;
-    let localMaxEnergy = -1;
-    for (let i = 0; i < energyFrame.length - 1; i++) {
-      const energy = energyFrame[i];
-
-      // Must be above minimum thershold
-      if (energy - suppressedEnergies[i] < this.energyThreshold) {
-        continue;
-      }
-
-      // Record if a frequency is above the rising edge threshold
-      // FIXME: delete if conditional
-      if (energyDerivFreq[i] >= this.risingThreshold) {
-        localMaxFreqIndex = i;
-        localMaxEnergy = energy;
-      }
-
-      // Find the frequency with the highest energy for a group of freqs above the threshold
-      if (localMaxEnergy > 0 && energy > localMaxEnergy) {
-        localMaxFreqIndex = i;
-        localMaxEnergy = energy;
-      }
-
-      // Store the highest energy freq for a group of freqs
-      if (energyDerivFreq[i] <= this.fallingThreshold) {
-        noteCandidates.push(localMaxFreqIndex);
-
-        // Suppress harmonics FIXME: Belongs in separate function
-        if (localMaxFreqIndex >= this.lowFreqIndex) {
-          let currentSuppressFactor = this.suppressFactor;
-          harmonicIndices(localMaxFreqIndex).forEach((harmonicIndex) => {
-            const suppression = localMaxEnergy * currentSuppressFactor;
-            suppressedEnergies[harmonicIndex] += suppression;
-            currentSuppressFactor *= this.suppressFactor;
-          });
-        }
-      }
-    }
-
-    return noteCandidates;
-  }
-
   // Just for fun, spin the audioMotion visualizer. Currently unused
   spinByEnergy() {
     this.audioMotion.spinSpeed = Math.pow(this.audioMotion.getEnergy() + 0.5, 2);
   }
 
-  drawNotes(ctx, energyFrame, noteCandidates, energyDerivFreq) {
+  drawNotes(ctx, energyFrame) {
     ctx.textAlign = "start";
     ctx.font = "18px Comfortaa";
 
     const scale = 20;
+    const yScale = 500;
 
     ctx.fillStyle = "#88aaff";
     for (let i = 0; i < energyFrame.length; i++) {
-      const height = energyFrame[i];
-
-      if (noteCandidates.includes(i)) {
-        this.drawCandidateNote(ctx, i, scale);
-
-        ctx.fillStyle = "#88aaff";
-      }
+      const height = energyFrame[i] * yScale;
 
       ctx.fillRect(i * scale, window.innerHeight - height, scale - 1, height);
     }
@@ -189,7 +133,7 @@ export default class SongAnalyzer {
 
   // FIXME: Temp function for debug info in the time axis, delete when done
   drawTimeDebug(ctx, debugEntries, time) {
-    const timeWindow = 300;
+    const timeWindow = 200;
     const visibleEntries = debugEntries
       .filter((e) => e.time > time - timeWindow)
       .map((e) => ({ ...e, visibleTime: e.time - (time - timeWindow) }));
@@ -208,6 +152,11 @@ export default class SongAnalyzer {
     for (let i = (Math.floor((time - timeWindow) / 50) + 1) * 50; i < time; i += 50) {
       const x = i - (time - timeWindow);
       ctx.fillText(i, x * xScale + xOffset, window.innerHeight / 4 + 7);
+    }
+
+    ctx.fillStyle = "#ffffff";
+    for (let i = 0; i <= 1; i += 0.1) {
+      ctx.fillRect(xOffset - 5, window.innerHeight / 4 - i * yScale, 5, 2);
     }
   }
 }

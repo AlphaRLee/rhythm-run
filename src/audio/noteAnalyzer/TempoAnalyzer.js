@@ -6,11 +6,11 @@ export default class TempoAnalyzer {
     this.avgEnergyHistory = new HistoryQueue({ maxLength: 108 });
     this.avgRisingHistory = new HistoryQueue({ maxLength: 108 });
 
-    this.midBeatHistory = new HistoryQueue({ maxLength: 10 });
-    this.strongBeatHistory = new HistoryQueue({ maxLength: 10 });
+    this.midBeatHistory = new HistoryQueue({ maxLength: 30 });
+    this.strongBeatHistory = new HistoryQueue({ maxLength: 30 });
 
-    this.midPeakRisingThreshold = 0.06;
-    this.strongPeakRisingThreshold = 0.08;
+    this.midPeakRisingThreshold = 0.03; // Rising minimum
+    this.strongPeakEnergyThreshold = 0.18; // Energy minimum
 
     this.beatTimeCooldown = 3; // How many frames must pass before a beat is accepted
 
@@ -36,11 +36,19 @@ export default class TempoAnalyzer {
     }
   }
 
+  outputBeats() {
+    const beats = [];
+    if (this.midBeat) beats.push(this.midBeatHistory.last());
+    if (this.strongBeat) beats.push(this.strongBeatHistory.last());
+
+    return beats;
+  }
+
   recordMidBeat(averageEnergy, lastDiff, time) {
     // Bail out if cooldown hasn't finished
     if (this.midBeatHistory.length && time - this.midBeatHistory.last().endTime < this.beatTimeCooldown) return;
 
-    if (lastDiff >= this.strongPeakRisingThreshold) {
+    if (averageEnergy >= this.strongPeakEnergyThreshold) {
       this.recordStrongBeat(averageEnergy, time);
       this.calculateTempo();
     }

@@ -1,12 +1,15 @@
 export default class BarData {
-  constructor({ notesData, startBeat, endBeat }) {
+  constructor({ notesData, startBeat, endBeat, midBeats = [] }) {
     this.notesData = notesData;
     this.startBeat = startBeat;
     this.endBeat = endBeat;
+    this.midBeats = midBeats;
+
+    this.beatNotes = this.calculateBeatNotes();
   }
 
   get duration() {
-    return this.endBeat.duration;
+    return this.endBeat.endTime - (this.startBeat?.endTime ? this.startBeat.endTime : 0);
   }
 
   get startTime() {
@@ -27,5 +30,31 @@ export default class BarData {
       times.push(this.startTime + i * quarterDuration);
     }
     return times;
+  }
+
+  midBeatTimes() {
+    return this.midBeats.map((beat) => beat.endTime);
+  }
+
+  calculateBeatNotes() {
+    const starTimeThreshold = 3;
+    const times = this.midBeatTimes();
+
+    const filteredNotes = [];
+    let i = 0;
+
+    times.forEach((time) => {
+      let targetNote = null;
+      while (!targetNote && i < this.notesData.length) {
+        if (Math.abs(time - this.notesData[i].startTime) <= starTimeThreshold) targetNote = this.notesData[i];
+        i++;
+      }
+
+      if (targetNote) {
+        filteredNotes.push(targetNote);
+      }
+    });
+
+    return filteredNotes;
   }
 }

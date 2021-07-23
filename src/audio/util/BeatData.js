@@ -2,7 +2,6 @@ export default class BeatData {
   constructor({ energy, startTime = undefined, endTime, type = "mid" }) {
     this.energy = energy;
     this.type = type;
-
     this.startTime = startTime;
     this.endTime = endTime;
   }
