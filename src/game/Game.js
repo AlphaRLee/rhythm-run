@@ -69,7 +69,7 @@ class Game {
   }
 
   onKeyDown = (key) => {
-    if (key == "w") {
+    if (key == "w" || key == " ") {
       this.player.jump();
     }
   };

@@ -89,14 +89,18 @@ function App() {
     );
 
   return (
-    <>
-      <audio ref={audioRef} onEnded={onAudioEnd} controls />
+    <div>
       <AudioVisualizer audioRef={audioRef} setNotes={(notes) => (notesRef.current = notes)} />
       {/* FIXME: Restore canvas */}
       {/* <Canvas draw={draw} tabIndex={0} onKeyDown={onKeyDown} onKeyUp={onKeyUp} className="absolute-canvas" /> */}
+
+      <div className="position-absolute" style={{ right: 10, top: 10 }}>
+        <audio ref={audioRef} onEnded={onAudioEnd} controls />
+      </div>
+
       {/* renderMenuWithTransition() */}
       {renderMenuWithoutTransition()}
-    </>
+    </div>
   );
 }
 
