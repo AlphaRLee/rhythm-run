@@ -64,7 +64,7 @@ export default class SongAnalyzer {
     this.drawDebug(this.canvasCtx, this.durationAnalyzer.debug); // FIXME: delete
     this.drawTimeDebug(
       this.canvasCtx,
-      this.tempoAnalyzer.midBeatHistory.map((b) => ({ value: b.energy, time: b.time })),
+      this.tempoAnalyzer.midBeatHistory.map((b) => ({ value: b.energy, time: b.endTime })),
       this.timer
     );
     this.timer++;
@@ -180,10 +180,10 @@ export default class SongAnalyzer {
   drawDebug(ctx, debugEntries) {
     const xScale = 20;
     const yScale = 500;
-    ctx.fillStyle = "#ff8866";
+    ctx.fillStyle = "#ffff88";
     for (let i = 0; i < debugEntries.length; i++) {
       const height = debugEntries[i] * yScale;
-      ctx.fillRect(i * xScale, window.innerHeight / 2 - height, xScale - 1, height);
+      ctx.fillRect(i * xScale, window.innerHeight - height, xScale - 1, height);
     }
   }
 

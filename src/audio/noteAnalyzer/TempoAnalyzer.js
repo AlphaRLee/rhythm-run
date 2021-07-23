@@ -57,8 +57,6 @@ export default class TempoAnalyzer {
   recordBeat(beatHistory, averageEnergy, time, fallbackTempo, type) {
     let duration = beatHistory.length ? time - beatHistory.last().endTime : fallbackTempo;
 
-    console.log("!!! duration", duration);
-
     // Fallback to last beat duration if beat is significantly behind last beat
     if (beatHistory.length && duration > 2 * beatHistory.last().duration) duration = beatHistory.last().duration;
 
@@ -67,18 +65,7 @@ export default class TempoAnalyzer {
 
   calculateTempo() {
     if (!this.strongBeatHistory.length) return;
-
-    console.log("!!! strongBeatHisto.last()", this.strongBeatHistory.last(), this.strongBeatHistory.last().duration);
     this.strongTempoDurationSum = this.strongBeatHistory.reduce((sum, peak) => sum + peak.duration, 0);
     this.strongTempo = this.strongTempoDurationSum / this.strongBeatHistory.length;
-
-    console.log("!!! strongTempo", this.strongTempo);
   }
-
-  /*
-    FIXME: Next items on list
-      Calculate time since last peak
-      Calculate "consistency" score, from 0 to 1 how close this matches prev peak timing (or peak before)
-      Update prev peak timing with weighted average
-   */
 }
